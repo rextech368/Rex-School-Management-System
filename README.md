@@ -1,44 +1,48 @@
-# Rex-School-Management-System
+# Rex School Management System
 
-Advanced AI automated school management system for all levels of education.
+Advanced AI-automated school management system for all levels of education.
 
 ## Overview
 
-Rex School Management System is a comprehensive platform designed to streamline educational institution management. It provides tools for managing students, staff, academics, finances, and communications.
+Rex School Management System is a comprehensive solution designed to streamline school administration, enhance communication between teachers, students, and parents, and provide powerful tools for academic management.
 
 ## Features
 
-- **Multi-tenant Architecture**: Support for multiple schools or branches
-- **Role-Based Access Control**: Different access levels for administrators, teachers, students, and parents
-- **Student Management**: Registration, profiles, attendance, and performance tracking
-- **Staff Management**: HR, attendance, and performance evaluation
-- **Academic Management**: Classes, subjects, timetables, and examinations
-- **Financial Management**: Fees, payments, expenses, and payroll
-- **Communication**: Email and SMS notifications
-- **Reporting**: Customizable reports and analytics
-- **File Management**: Secure storage and sharing of documents
+- **User Management**: Role-based access control for administrators, teachers, students, and parents
+- **Student Management**: Complete student profiles, academic records, and attendance tracking
+- **Teacher Management**: Teacher profiles, class assignments, and performance evaluation
+- **Academic Management**: Curriculum planning, class scheduling, and resource allocation
+- **Examination System**: Exam creation, grading, and result analysis
+- **Attendance Tracking**: Digital attendance management for students and staff
+- **Communication Tools**: Messaging system, announcements, and notifications
+- **Reports & Analytics**: Comprehensive reporting and data visualization
+- **Mobile Responsive**: Access from any device with a responsive design
 
-## Tech Stack
+## Technology Stack
 
 ### Backend
-- NestJS (Node.js framework)
-- TypeORM for database interactions
-- PostgreSQL database
-- Redis for caching and queues
-- JWT for authentication
+
+- **Framework**: NestJS (TypeScript)
+- **Database**: PostgreSQL
+- **Authentication**: JWT, Passport
+- **API Documentation**: Swagger
+- **Testing**: Jest
 
 ### Frontend
-- Next.js (React framework)
-- Tailwind CSS for styling
-- shadcn/ui component library
-- React Query for data fetching
+
+- **Framework**: Next.js (React)
+- **Styling**: Tailwind CSS
+- **State Management**: React Query, Context API
+- **Authentication**: NextAuth.js
+- **Testing**: Jest, React Testing Library
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v16+)
 - PostgreSQL
-- Redis
+- npm or yarn
 
 ### Installation
 
@@ -60,19 +64,9 @@ Rex School Management System is a comprehensive platform designed to streamline 
    ```
 
 3. Set up environment variables:
-   ```bash
-   # Copy the example env file
-   cp .env.example .env
-   # Edit the .env file with your configuration
-   ```
+   - Create `.env` files in both the backend and frontend directories based on the provided examples
 
-4. Run database migrations:
-   ```bash
-   cd backend
-   npm run migration:run
-   ```
-
-5. Start the development servers:
+4. Start the development servers:
    ```bash
    # Start backend server
    cd backend
@@ -83,19 +77,50 @@ Rex School Management System is a comprehensive platform designed to streamline 
    npm run dev
    ```
 
-6. Access the application:
-   - Backend API: http://localhost:3000/api/v1
-   - Frontend: http://localhost:3001
+## Project Structure
 
-## Documentation
-
-For detailed documentation, please refer to the [Wiki](https://github.com/rextech368/Rex-School-Management-System/wiki).
+```
+├── backend/
+│   ├── src/
+│   │   ├── main.ts
+│   │   ├── app.module.ts
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── students/
+│   │   ├── academics/
+│   │   ├── exams/
+│   │   └── common/
+│   └── config/
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   └── styles/
+│   ├── public/
+│   └── next.config.js
+├── .gitignore
+└── README.md
+```
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [NestJS](https://nestjs.com/)
+- [Next.js](https://nextjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TypeORM](https://typeorm.io/)
 

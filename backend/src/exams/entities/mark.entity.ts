@@ -1,33 +1,49 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn, Unique } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntity } from '../../common/base.entity';
 import { Exam } from './exam.entity';
 import { Student } from '../../students/entities/student.entity';
 import { Subject } from '../../academics/entities/subject.entity';
-import { User } from '../../users/entities/user.entity';
 
-@Entity({ name: 'marks' })
-@Unique(['exam', 'student', 'subject'])
-export class Mark {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
+@Entity('marks')
+export class Mark extends BaseEntity {
+  @ApiProperty({ description: 'Marks obtained' })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  marksObtained: number;
 
-  @ManyToOne(() => Exam, { nullable: false })
+  @ApiProperty({ description: 'Grade' })
+  @Column({ nullable: true })
+  grade?: string;
+
+  @ApiProperty({ description: 'Remarks' })
+  @Column({ type: 'text', nullable: true })
+  remarks?: string;
+
+  @ApiProperty({ description: 'Exam ID' })
+  @Column({ type: 'uuid' })
+  examId: string;
+
+  @ApiProperty({ description: 'Exam' })
+  @ManyToOne(() => Exam, exam => exam.marks)
+  @JoinColumn({ name: 'examId' })
   exam: Exam;
 
-  @ManyToOne(() => Student, { nullable: false })
+  @ApiProperty({ description: 'Student ID' })
+  @Column({ type: 'uuid' })
+  studentId: string;
+
+  @ApiProperty({ description: 'Student' })
+  @ManyToOne(() => Student)
+  @JoinColumn({ name: 'studentId' })
   student: Student;
 
-  @ManyToOne(() => Subject, { nullable: false })
+  @ApiProperty({ description: 'Subject ID' })
+  @Column({ type: 'uuid' })
+  subjectId: string;
+
+  @ApiProperty({ description: 'Subject' })
+  @ManyToOne(() => Subject)
+  @JoinColumn({ name: 'subjectId' })
   subject: Subject;
-
-  @Column({ type: 'decimal', precision: 5, scale: 2 })
-  score: number;
-
-  @ManyToOne(() => User, { nullable: false })
-  entered_by: User;
-
-  @CreateDateColumn()
-  entered_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 }
+
