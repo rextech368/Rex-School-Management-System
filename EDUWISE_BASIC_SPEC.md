@@ -47,7 +47,7 @@ Key features:
 - Redis for sessions, caching, job queue
 
 **Storage**
-- S3-compatible (e.g., MinIO, AWS S3)
+- Supabase
 
 **Optional**
 - OpenSearch (logs/metrics dashboards)
@@ -71,8 +71,8 @@ Key features:
 ```
 DB_URL
 REDIS_URL
-S3_ACCESS_KEY
-S3_SECRET_KEY
+SUPABASE_URL
+SUPABASE_ANON_KEY
 S3_BUCKET
 JWT_SECRET
 JWT_TTL
