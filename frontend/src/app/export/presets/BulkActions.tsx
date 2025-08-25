@@ -1,0 +1,1 @@
+<button onClick={handleBulkDelete} disabled={loading || !selectedIds.length}>Delete Selected</button>

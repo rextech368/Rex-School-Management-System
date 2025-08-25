@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; }
+      .card { border: 1px solid #d3d3d3; border-radius: 8px; padding: 24px; }
+      .school-logo { width: 120px; margin-bottom: 12px; }
+      .footer { color: #666; font-size: 12px; margin-top: 24px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img src="https://yourdomain.com/logo.png" alt="School Logo" class="school-logo" />
+      <h2>{{schoolName}}</h2>
+      <p>Dear {{parentName}},</p>
+      <p>
+        The report card for <b>{{studentName}}</b> (Class: {{className}}, Exam: {{examName}}) is attached.<br>
+        Please review the results below or open the attached PDF for details.
+      </p>
+      <table>
+        {{#each subjects}}
+        <tr>
+          <td>{{name}}</td>
+          <td align="right">{{score}}</td>
+        </tr>
+        {{/each}}
+      </table>
+      <p>
+        <b>Average:</b> {{average}}<br>
+        <b>Position:</b> {{position}} / {{totalStudents}}
+      </p>
+      <div class="footer">
+        --<br>
+        EDU-WISE School Management System<br>
+        <a href="https://yourdomain.com">yourdomain.com</a>
+      </div>
+    </div>
+  </body>
+</html>
