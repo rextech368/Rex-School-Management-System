@@ -4,68 +4,56 @@ import { ConfigModule } from '@nestjs/config';
 
 // Entities
 import { Student } from './entities/student.entity';
-import { Parent } from './entities/parent.entity';
-import { StudentDocument } from './entities/student-document.entity';
-import { StudentGroup } from './entities/student-group.entity';
-import { User } from '../users/entities/user.entity';
+import { Program } from './entities/program.entity';
+import { Guardian } from './entities/guardian.entity';
+import { Document } from './entities/document.entity';
+import { ExportTemplate } from './entities/export-template.entity';
 
 // Controllers
-import { 
-  StudentsController, 
-  ParentsController,
-  StudentDocumentsController,
-  StudentGroupsController,
-  StudentAccountController
-} from './controllers';
-import { StudentExportController } from './student-export.controller';
+import { StudentsController } from './controllers/students.controller';
+import { ProgramsController } from './controllers/programs.controller';
+import { GuardiansController } from './controllers/guardians.controller';
+import { DocumentsController } from './controllers/documents.controller';
+import { StudentExportController } from './controllers/export/student-export.controller';
 
 // Services
-import { 
-  StudentsService, 
-  ParentsService,
-  StudentDocumentsService,
-  StudentGroupsService,
-  StudentAccountService
-} from './services';
-
-// Import UsersModule to use UsersService
-import { UsersModule } from '../users/users.module';
-import { CommonModule } from '../common/common.module';
+import { StudentsService } from './services/students.service';
+import { ProgramsService } from './services/programs.service';
+import { GuardiansService } from './services/guardians.service';
+import { DocumentsService } from './services/documents.service';
+import { StudentExportService } from './services/export/student-export.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Student, 
-      Parent, 
-      StudentDocument, 
-      StudentGroup, 
-      User
+      Student,
+      Program,
+      Guardian,
+      Document,
+      ExportTemplate,
     ]),
     ConfigModule,
-    UsersModule, // Import UsersModule to use UsersService
-    CommonModule, // Import CommonModule to use FileUploadService
   ],
   controllers: [
-    StudentsController, 
-    ParentsController,
-    StudentDocumentsController,
-    StudentGroupsController,
-    StudentAccountController,
-    StudentExportController
+    StudentsController,
+    ProgramsController,
+    GuardiansController,
+    DocumentsController,
+    StudentExportController,
   ],
   providers: [
-    StudentsService, 
-    ParentsService,
-    StudentDocumentsService,
-    StudentGroupsService,
-    StudentAccountService
+    StudentsService,
+    ProgramsService,
+    GuardiansService,
+    DocumentsService,
+    StudentExportService,
   ],
   exports: [
-    StudentsService, 
-    ParentsService,
-    StudentDocumentsService,
-    StudentGroupsService,
-    StudentAccountService
+    StudentsService,
+    ProgramsService,
+    GuardiansService,
+    DocumentsService,
+    StudentExportService,
   ],
 })
 export class StudentsModule {}
