@@ -1,56 +1,93 @@
-import { Entity, Column, OneToOne } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
-import { BaseEntity } from '../../common/base.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Parent } from './parent.entity';
 
 @Entity('parent_preferences')
-export class ParentPreferences extends BaseEntity {
-  @ApiProperty({ description: 'Language preference' })
-  @Column({ default: 'en' })
-  language: string;
+export class ParentPreferences {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @ApiProperty({ description: 'Receive attendance notifications' })
+  @Column({ default: true })
+  emailNotifications: boolean;
+
+  @Column({ default: true })
+  smsNotifications: boolean;
+
+  @Column({ default: true })
+  whatsappNotifications: boolean;
+
+  @Column({ default: true })
+  inAppNotifications: boolean;
+
   @Column({ default: true })
   attendanceNotifications: boolean;
 
-  @ApiProperty({ description: 'Receive grade notifications' })
   @Column({ default: true })
-  gradeNotifications: boolean;
+  academicNotifications: boolean;
 
-  @ApiProperty({ description: 'Receive behavior notifications' })
   @Column({ default: true })
   behaviorNotifications: boolean;
 
-  @ApiProperty({ description: 'Receive fee notifications' })
   @Column({ default: true })
-  feeNotifications: boolean;
+  financialNotifications: boolean;
 
-  @ApiProperty({ description: 'Receive event notifications' })
   @Column({ default: true })
   eventNotifications: boolean;
 
-  @ApiProperty({ description: 'Receive assignment notifications' })
   @Column({ default: true })
-  assignmentNotifications: boolean;
+  emergencyNotifications: boolean;
 
-  @ApiProperty({ description: 'Notification time preference (24h format, e.g. 18:00)' })
-  @Column({ default: '18:00' })
-  notificationTimePreference: string;
+  @Column({ default: 'en' })
+  preferredLanguage: string;
 
-  @ApiProperty({ description: 'Weekend notifications enabled' })
+  @Column({ default: 'email' })
+  preferredCommunicationChannel: string;
+
+  @Column({ nullable: true })
+  notificationFrequency: string;
+
+  @Column({ nullable: true })
+  quietHoursStart: string;
+
+  @Column({ nullable: true })
+  quietHoursEnd: string;
+
   @Column({ default: false })
-  weekendNotificationsEnabled: boolean;
+  receiveMarketingCommunications: boolean;
 
-  @ApiProperty({ description: 'Notification frequency' })
-  @Column({ default: 'daily' })
-  notificationFrequency: 'immediate' | 'daily' | 'weekly';
+  @Column({ default: true })
+  receiveNewsletters: boolean;
 
-  @ApiProperty({ description: 'Dashboard view preference' })
-  @Column({ default: 'summary' })
-  dashboardViewPreference: 'summary' | 'detailed' | 'calendar';
+  @Column({ nullable: true })
+  additionalPreferences: string;
 
-  @ApiProperty({ description: 'Parent associated with these preferences' })
   @OneToOne(() => Parent, parent => parent.preferences)
   parent: Parent;
+
+  @Column({ nullable: true })
+  createdBy: string;
+
+  @Column({ nullable: true })
+  updatedBy: string;
+
+  @Column({ nullable: true })
+  deletedBy: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
 
