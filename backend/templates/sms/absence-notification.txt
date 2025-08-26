@@ -1,0 +1,2 @@
+{{schoolName}} Alert: {{studentName}} was marked absent today ({{date}}). Please contact the school if you were not aware of this absence.
+
