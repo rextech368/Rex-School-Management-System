@@ -1,160 +1,31 @@
-// User roles
 export enum Role {
   ADMIN = 'admin',
+  REGISTRAR = 'registrar',
   TEACHER = 'teacher',
   STUDENT = 'student',
   PARENT = 'parent',
-  REGISTRAR = 'registrar',
-  STAFF = 'staff'
+  GUEST = 'guest'
 }
 
-// User interface
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: Role;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Student interface
-export interface Student {
-  id: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  dateOfBirth: string;
-  gradeLevel: number;
-  guardianId?: string;
-  guardianFirstName?: string;
-  guardianLastName?: string;
-  guardianEmail?: string;
-  guardianPhone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  phone?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  emergencyContactRelationship?: string;
-  medicalInformation?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Course interface
-export interface Course {
-  id: string;
-  code: string;
-  name: string;
-  description?: string;
-  department: string;
-  credits: number;
-  gradeLevel: number[] | number;
-  prerequisites?: string[];
-  syllabus?: string;
-  materials?: CourseMaterial[];
-  isActive: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-// Course material interface
-export interface CourseMaterial {
-  id?: string;
-  title: string;
-  description?: string;
-  url?: string;
-  type?: string;
-}
-
-// Term interface
-export interface Term {
-  id: string;
-  name: string;
-  academicYear: string;
-  startDate: string;
-  endDate: string;
-  type: TermType;
-  isCurrent: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-// Term type enum
 export enum TermType {
   SEMESTER = 'semester',
   QUARTER = 'quarter',
   TRIMESTER = 'trimester',
-  YEAR = 'year',
   SUMMER = 'summer',
-  OTHER = 'other'
+  WINTER = 'winter',
+  YEAR = 'year'
 }
 
-// Class interface
-export interface Class {
-  id: string;
-  courseId: string;
-  course?: Course;
-  termId: string;
-  term?: Term;
-  teacherId?: string;
-  teacher?: User;
-  section: string;
-  capacity: number;
-  enrolledCount: number;
-  waitlistCount: number;
-  room?: string;
-  building?: string;
-  schedules?: ClassSchedule[];
-  isActive: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-// Class schedule interface
-export interface ClassSchedule {
-  id: string;
-  classId: string;
-  dayOfWeek: DayOfWeek;
-  startTime: string;
-  endTime: string;
-  room?: string;
-  building?: string;
-}
-
-// Day of week enum
 export enum DayOfWeek {
+  SUNDAY = 'sunday',
   MONDAY = 'monday',
   TUESDAY = 'tuesday',
   WEDNESDAY = 'wednesday',
   THURSDAY = 'thursday',
   FRIDAY = 'friday',
-  SATURDAY = 'saturday',
-  SUNDAY = 'sunday'
+  SATURDAY = 'saturday'
 }
 
-// Enrollment interface
-export interface Enrollment {
-  id: string;
-  classId: string;
-  class?: Class;
-  studentId: string;
-  student?: Student;
-  enrollmentDate: string;
-  status: EnrollmentStatus;
-  grade?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-// Enrollment status enum
 export enum EnrollmentStatus {
   ENROLLED = 'enrolled',
   WAITLISTED = 'waitlisted',
@@ -162,23 +33,98 @@ export enum EnrollmentStatus {
   COMPLETED = 'completed'
 }
 
-// Attendance interface
-export interface Attendance {
+export interface User {
   id: string;
-  classId: string;
-  studentId: string;
-  date: string;
-  status: AttendanceStatus;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: Role;
 }
 
-// Attendance status enum
-export enum AttendanceStatus {
-  PRESENT = 'present',
-  ABSENT = 'absent',
-  TARDY = 'tardy',
-  EXCUSED = 'excused'
+export interface Term {
+  id: string;
+  name: string;
+  code: string;
+  type: TermType;
+  startDate: string;
+  endDate: string;
+  registrationStart?: string;
+  registrationEnd?: string;
+  isActive: boolean;
+  isCurrent: boolean;
+  description?: string;
+  academicYear?: string;
+  events?: any[];
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  credits: number;
+  department?: string;
+  prerequisites?: string[];
+}
+
+export interface Teacher {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  department?: string;
+}
+
+export interface ClassSchedule {
+  id: string;
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+  room?: string;
+  building?: string;
+}
+
+export interface Class {
+  id: string;
+  courseId: string;
+  course?: Course;
+  termId: string;
+  term?: Term;
+  section: string;
+  capacity: number;
+  enrolledCount: number;
+  waitlistCount: number;
+  teacherId?: string;
+  teacher?: Teacher;
+  room?: string;
+  building?: string;
+  schedules?: ClassSchedule[];
+}
+
+export interface Student {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  gradeLevel?: number;
+  dateOfBirth?: string;
+  guardianFirstName?: string;
+  guardianLastName?: string;
+  guardianEmail?: string;
+  guardianPhone?: string;
+  currentEnrollments?: Enrollment[];
+  waitlistedClasses?: Enrollment[];
+}
+
+export interface Enrollment {
+  id: string;
+  studentId: string;
+  student?: Student;
+  classId: string;
+  class?: Class;
+  status: EnrollmentStatus;
+  enrollmentDate: string;
+  grade?: string;
+  prerequisitesMet?: boolean;
 }
 
