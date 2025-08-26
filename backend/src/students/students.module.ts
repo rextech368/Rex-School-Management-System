@@ -14,7 +14,8 @@ import {
   StudentsController, 
   ParentsController,
   StudentDocumentsController,
-  StudentGroupsController
+  StudentGroupsController,
+  StudentAccountController
 } from './controllers';
 import { StudentExportController } from './student-export.controller';
 
@@ -23,8 +24,12 @@ import {
   StudentsService, 
   ParentsService,
   StudentDocumentsService,
-  StudentGroupsService
+  StudentGroupsService,
+  StudentAccountService
 } from './services';
+
+// Import UsersModule to use UsersService
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -36,25 +41,29 @@ import {
       User
     ]),
     ConfigModule,
+    UsersModule, // Import UsersModule to use UsersService
   ],
   controllers: [
     StudentsController, 
     ParentsController,
     StudentDocumentsController,
     StudentGroupsController,
+    StudentAccountController,
     StudentExportController
   ],
   providers: [
     StudentsService, 
     ParentsService,
     StudentDocumentsService,
-    StudentGroupsService
+    StudentGroupsService,
+    StudentAccountService
   ],
   exports: [
     StudentsService, 
     ParentsService,
     StudentDocumentsService,
-    StudentGroupsService
+    StudentGroupsService,
+    StudentAccountService
   ],
 })
 export class StudentsModule {}
