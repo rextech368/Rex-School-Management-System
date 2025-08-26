@@ -5,10 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { StudentsModule } from './students/students.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ExportsModule } from './exports/exports.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { GradesModule } from './grades/grades.module';
+import { StudentsModule } from './students/students.module';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { GradesModule } from './grades/grades.module';
         port: configService.get('DB_PORT', 5432),
         username: configService.get('DB_USERNAME', 'postgres'),
         password: configService.get('DB_PASSWORD', 'postgres'),
-        database: configService.get('DB_DATABASE', 'rex_school'),
+        database: configService.get('DB_DATABASE', 'rex_school_management'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: configService.get('DB_SYNCHRONIZE', false),
         logging: configService.get('DB_LOGGING', false),
@@ -37,10 +38,11 @@ import { GradesModule } from './grades/grades.module';
     }),
     AuthModule,
     UsersModule,
-    StudentsModule,
     NotificationsModule,
+    ExportsModule,
     AttendanceModule,
     GradesModule,
+    StudentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

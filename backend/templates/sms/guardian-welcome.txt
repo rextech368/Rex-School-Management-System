@@ -1,0 +1,2 @@
+{{schoolName}}: Hello {{guardianName}}! Your child {{studentName}} (ID: {{studentId}}) has been enrolled. Access the parent portal for details and updates.
+

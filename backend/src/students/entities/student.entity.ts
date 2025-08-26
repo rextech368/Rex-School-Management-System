@@ -1,230 +1,141 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToOne, OneToMany, ManyToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '../../common/base.entity';
+import { Gender } from '../enums/gender.enum';
+import { StudentStatus } from '../enums/student-status.enum';
+import { Guardian } from './guardian.entity';
 import { User } from '../../users/entities/user.entity';
-
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-}
-
-export enum BloodGroup {
-  A_POSITIVE = 'A+',
-  A_NEGATIVE = 'A-',
-  B_POSITIVE = 'B+',
-  B_NEGATIVE = 'B-',
-  AB_POSITIVE = 'AB+',
-  AB_NEGATIVE = 'AB-',
-  O_POSITIVE = 'O+',
-  O_NEGATIVE = 'O-',
-}
-
-export enum StudentStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  GRADUATED = 'graduated',
-  TRANSFERRED = 'transferred',
-  SUSPENDED = 'suspended',
-  EXPELLED = 'expelled',
-  ALUMNI = 'alumni',
-  PENDING = 'pending',
-}
 
 @Entity('students')
 export class Student extends BaseEntity {
-  @ApiProperty({ description: 'Student admission number' })
-  @Column({ unique: true })
-  admissionNumber: string;
-
-  @ApiProperty({ description: 'Student first name' })
+  @ApiProperty({ description: 'First name of the student' })
   @Column()
   firstName: string;
 
-  @ApiProperty({ description: 'Student last name' })
-  @Column()
-  lastName: string;
-
-  @ApiProperty({ description: 'Student middle name', required: false })
+  @ApiProperty({ description: 'Middle name of the student', required: false })
   @Column({ nullable: true })
   middleName?: string;
 
-  @ApiProperty({ description: 'Student date of birth' })
+  @ApiProperty({ description: 'Last name of the student' })
+  @Column()
+  lastName: string;
+
+  @ApiProperty({ description: 'Date of birth of the student' })
   @Column({ type: 'date' })
   dateOfBirth: Date;
 
-  @ApiProperty({ description: 'Student gender', enum: Gender })
-  @Column({ type: 'enum', enum: Gender })
+  @ApiProperty({ description: 'Gender of the student', enum: Gender })
+  @Column({
+    type: 'enum',
+    enum: Gender,
+    default: Gender.PREFER_NOT_TO_SAY,
+  })
   gender: Gender;
 
-  @ApiProperty({ description: 'Student blood group', enum: BloodGroup, required: false })
-  @Column({ type: 'enum', enum: BloodGroup, nullable: true })
-  bloodGroup?: BloodGroup;
+  @ApiProperty({ description: 'Email address of the student', required: false })
+  @Column({ nullable: true, unique: true })
+  email?: string;
 
-  @ApiProperty({ description: 'Student address' })
-  @Column({ type: 'text', nullable: true })
-  address?: string;
-
-  @ApiProperty({ description: 'Student city' })
-  @Column({ nullable: true })
-  city?: string;
-
-  @ApiProperty({ description: 'Student state/province' })
-  @Column({ nullable: true })
-  state?: string;
-
-  @ApiProperty({ description: 'Student country' })
-  @Column({ nullable: true })
-  country?: string;
-
-  @ApiProperty({ description: 'Student postal code' })
-  @Column({ nullable: true })
-  postalCode?: string;
-
-  @ApiProperty({ description: 'Student phone number' })
+  @ApiProperty({ description: 'Phone number of the student', required: false })
   @Column({ nullable: true })
   phoneNumber?: string;
 
-  @ApiProperty({ description: 'Student email address' })
-  @Column({ nullable: true })
-  email?: string;
+  @ApiProperty({ description: 'Address of the student', required: false })
+  @Column({ type: 'text', nullable: true })
+  address?: string;
 
-  @ApiProperty({ description: 'Student nationality' })
+  @ApiProperty({ description: 'City of residence', required: false })
+  @Column({ nullable: true })
+  city?: string;
+
+  @ApiProperty({ description: 'State/province of residence', required: false })
+  @Column({ nullable: true })
+  state?: string;
+
+  @ApiProperty({ description: 'Postal/ZIP code', required: false })
+  @Column({ nullable: true })
+  postalCode?: string;
+
+  @ApiProperty({ description: 'Country of residence', required: false })
+  @Column({ nullable: true })
+  country?: string;
+
+  @ApiProperty({ description: 'Nationality of the student', required: false })
   @Column({ nullable: true })
   nationality?: string;
 
-  @ApiProperty({ description: 'Student religion' })
+  @ApiProperty({ description: 'Student ID number (school-specific)' })
+  @Column({ unique: true })
+  studentId: string;
+
+  @ApiProperty({ description: 'Grade level or year of study' })
+  @Column()
+  gradeLevel: string;
+
+  @ApiProperty({ description: 'Class or section ID', required: false })
   @Column({ nullable: true })
-  religion?: string;
+  classId?: string;
 
-  @ApiProperty({ description: 'Student emergency contact name' })
-  @Column({ nullable: true })
-  emergencyContactName?: string;
-
-  @ApiProperty({ description: 'Student emergency contact phone' })
-  @Column({ nullable: true })
-  emergencyContactPhone?: string;
-
-  @ApiProperty({ description: 'Student emergency contact relationship' })
-  @Column({ nullable: true })
-  emergencyContactRelationship?: string;
-
-  @ApiProperty({ description: 'Student medical conditions' })
-  @Column({ type: 'text', nullable: true })
-  medicalConditions?: string;
-
-  @ApiProperty({ description: 'Student allergies' })
-  @Column({ type: 'text', nullable: true })
-  allergies?: string;
-
-  @ApiProperty({ description: 'Student medications' })
-  @Column({ type: 'text', nullable: true })
-  medications?: string;
-
-  @ApiProperty({ description: 'Student profile picture URL' })
-  @Column({ nullable: true })
-  profilePicture?: string;
-
-  @ApiProperty({ description: 'Student admission date' })
+  @ApiProperty({ description: 'Enrollment date' })
   @Column({ type: 'date' })
-  admissionDate: Date;
+  enrollmentDate: Date;
 
-  @ApiProperty({ description: 'Student graduation date' })
+  @ApiProperty({ description: 'Graduation date', required: false })
   @Column({ type: 'date', nullable: true })
   graduationDate?: Date;
 
-  @ApiProperty({ description: 'Student status', enum: StudentStatus })
-  @Column({ 
-    type: 'enum', 
-    enum: StudentStatus, 
-    default: StudentStatus.ACTIVE 
+  @ApiProperty({ description: 'Status of the student', enum: StudentStatus })
+  @Column({
+    type: 'enum',
+    enum: StudentStatus,
+    default: StudentStatus.ACTIVE,
   })
   status: StudentStatus;
 
-  @ApiProperty({ description: 'Previous school name' })
+  @ApiProperty({ description: 'Emergency contact name', required: false })
   @Column({ nullable: true })
-  previousSchool?: string;
+  emergencyContactName?: string;
 
-  @ApiProperty({ description: 'Previous school address' })
+  @ApiProperty({ description: 'Emergency contact phone', required: false })
+  @Column({ nullable: true })
+  emergencyContactPhone?: string;
+
+  @ApiProperty({ description: 'Emergency contact relationship', required: false })
+  @Column({ nullable: true })
+  emergencyContactRelationship?: string;
+
+  @ApiProperty({ description: 'Medical information or notes', required: false })
   @Column({ type: 'text', nullable: true })
-  previousSchoolAddress?: string;
+  medicalInformation?: string;
 
-  @ApiProperty({ description: 'Transfer certificate number' })
-  @Column({ nullable: true })
-  transferCertificateNumber?: string;
-
-  @ApiProperty({ description: 'Birth certificate number' })
-  @Column({ nullable: true })
-  birthCertificateNumber?: string;
-
-  @ApiProperty({ description: 'Student ID card number' })
-  @Column({ nullable: true })
-  idCardNumber?: string;
-
-  @ApiProperty({ description: 'Student user account' })
-  @OneToOne(() => User, { nullable: true })
-  @JoinColumn()
-  user?: User;
-
-  @Column({ type: 'uuid', nullable: true })
-  userId?: string;
-
-  @ApiProperty({ description: 'Current class ID' })
-  @Column({ type: 'uuid', nullable: true })
-  currentClassId?: string;
-
-  @ApiProperty({ description: 'Current section ID' })
-  @Column({ type: 'uuid', nullable: true })
-  currentSectionId?: string;
-
-  @ApiProperty({ description: 'Current academic year ID' })
-  @Column({ type: 'uuid', nullable: true })
-  academicYearId?: string;
-
-  @ApiProperty({ description: 'Roll number in current class' })
-  @Column({ nullable: true })
-  rollNumber?: string;
-
-  @ApiProperty({ description: 'House/Team assignment' })
-  @Column({ nullable: true })
-  house?: string;
-
-  @ApiProperty({ description: 'Student registration number' })
-  @Column({ nullable: true })
-  registrationNumber?: string;
-
-  @ApiProperty({ description: 'Student documents' })
-  @Column('simple-array', { nullable: true })
-  documents?: string[];
-
-  @ApiProperty({ description: 'Special needs or accommodations' })
+  @ApiProperty({ description: 'Special needs or accommodations', required: false })
   @Column({ type: 'text', nullable: true })
   specialNeeds?: string;
 
-  @ApiProperty({ description: 'Scholarship information' })
+  @ApiProperty({ description: 'Additional notes', required: false })
   @Column({ type: 'text', nullable: true })
-  scholarshipInfo?: string;
+  notes?: string;
 
-  @ApiProperty({ description: 'Fee category' })
+  @ApiProperty({ description: 'Profile photo URL', required: false })
   @Column({ nullable: true })
-  feeCategory?: string;
+  profilePhotoUrl?: string;
 
-  @ApiProperty({ description: 'Bus route number' })
+  @ApiProperty({ description: 'User ID if student has system access', required: false })
   @Column({ nullable: true })
-  busRouteNumber?: string;
+  userId?: string;
 
-  @ApiProperty({ description: 'Bus stop' })
-  @Column({ nullable: true })
-  busStop?: string;
+  @ApiProperty({ description: 'User account if student has system access', required: false })
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'userId' })
+  user?: User;
 
-  @ApiProperty({ description: 'Hostel room number' })
-  @Column({ nullable: true })
-  hostelRoomNumber?: string;
-
-  @ApiProperty({ description: 'Locker number' })
-  @Column({ nullable: true })
-  lockerNumber?: string;
-
-  // Relationships will be added here as needed
+  @ApiProperty({ description: 'Guardians associated with this student', type: [Guardian] })
+  @ManyToMany(() => Guardian, guardian => guardian.students)
+  @JoinTable({
+    name: 'student_guardians',
+    joinColumn: { name: 'studentId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'guardianId', referencedColumnName: 'id' },
+  })
+  guardians: Guardian[];
 }
 
