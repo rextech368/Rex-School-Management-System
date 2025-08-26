@@ -10,6 +10,7 @@ import { ExportsModule } from './exports/exports.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { GradesModule } from './grades/grades.module';
 import { StudentsModule } from './students/students.module';
+import { ClassesModule } from './classes/classes.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { StudentsModule } from './students/students.module';
     AttendanceModule,
     GradesModule,
     StudentsModule,
+    ClassesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

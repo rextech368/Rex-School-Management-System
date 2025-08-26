@@ -1,67 +1,52 @@
+import { 
+  IsString, 
+  IsUUID,
+  IsEnum,
+  IsOptional,
+  IsBoolean
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsEnum, IsUUID } from 'class-validator';
-import { Type } from 'class-transformer';
-import { ClassStatus } from '../entities/class.entity';
+import { ClassType } from '../enums/class-type.enum';
 
 export class ClassFilterDto {
-  @ApiProperty({ required: false, description: 'Filter by class name' })
+  @ApiProperty({ description: 'Search term for name or code', required: false })
   @IsOptional()
   @IsString()
-  name?: string;
+  search?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by grade' })
-  @IsOptional()
-  @IsString()
-  grade?: string;
-
-  @ApiProperty({ required: false, description: 'Filter by level' })
-  @IsOptional()
-  @Type(() => Number)
-  level?: number;
-
-  @ApiProperty({ required: false, enum: ClassStatus, description: 'Filter by status' })
-  @IsOptional()
-  @IsEnum(ClassStatus)
-  status?: ClassStatus;
-
-  @ApiProperty({ required: false, description: 'Filter by academic year ID' })
+  @ApiProperty({ description: 'Filter by course ID', required: false })
   @IsOptional()
   @IsUUID()
-  academicYearId?: string;
+  courseId?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by head teacher ID' })
+  @ApiProperty({ description: 'Filter by term ID', required: false })
   @IsOptional()
   @IsUUID()
-  headTeacherId?: string;
+  termId?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by teacher ID' })
+  @ApiProperty({ description: 'Filter by class type', enum: ClassType, required: false })
+  @IsOptional()
+  @IsEnum(ClassType)
+  type?: ClassType;
+
+  @ApiProperty({ description: 'Filter by primary teacher ID', required: false })
   @IsOptional()
   @IsUUID()
-  teacherId?: string;
+  primaryTeacherId?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by subject ID' })
+  @ApiProperty({ description: 'Filter by active status', required: false })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiProperty({ description: 'Filter by student ID (classes student is enrolled in)', required: false })
   @IsOptional()
   @IsUUID()
-  subjectId?: string;
+  studentId?: string;
 
-  @ApiProperty({ required: false, description: 'Page number', default: 1 })
+  @ApiProperty({ description: 'Filter by assistant teacher ID', required: false })
   @IsOptional()
-  @Type(() => Number)
-  page?: number = 1;
-
-  @ApiProperty({ required: false, description: 'Items per page', default: 10 })
-  @IsOptional()
-  @Type(() => Number)
-  limit?: number = 10;
-
-  @ApiProperty({ required: false, description: 'Sort field', default: 'level' })
-  @IsOptional()
-  @IsString()
-  sortBy?: string = 'level';
-
-  @ApiProperty({ required: false, description: 'Sort order', default: 'ASC' })
-  @IsOptional()
-  @IsEnum(['ASC', 'DESC'])
-  sortOrder?: 'ASC' | 'DESC' = 'ASC';
+  @IsUUID()
+  assistantTeacherId?: string;
 }
 

@@ -1,125 +1,106 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  OneToMany,
-  ManyToOne,
-  JoinColumn,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
-import { Section } from './section.entity';
-import { Student } from '../../students/entities/student.entity';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntity } from '../../common/base.entity';
+import { Course } from './course.entity';
+import { ClassType } from '../enums/class-type.enum';
 import { User } from '../../users/entities/user.entity';
-import { AcademicYear } from '../../academic/entities/academic-year.entity';
-import { Subject } from '../../academic/entities/subject.entity';
-
-export enum ClassStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  ARCHIVED = 'archived',
-}
+import { Student } from '../../students/entities/student.entity';
+import { ClassSchedule } from './class-schedule.entity';
+import { Term } from './term.entity';
 
 @Entity('classes')
-export class Class {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Class extends BaseEntity {
+  @ApiProperty({ description: 'Class name or section' })
   @Column()
   name: string;
 
-  @Column({ nullable: true })
-  displayName: string;
+  @ApiProperty({ description: 'Class code (unique identifier)' })
+  @Column({ unique: true })
+  code: string;
 
-  @Column({ nullable: true })
-  description: string;
+  @ApiProperty({ description: 'Course ID' })
+  @Column({ type: 'uuid' })
+  courseId: string;
 
-  @Column({ nullable: true })
-  grade: string;
+  @ApiProperty({ description: 'Course', type: () => Course })
+  @ManyToOne(() => Course, course => course.classes)
+  @JoinColumn({ name: 'courseId' })
+  course: Course;
 
-  @Column({ nullable: true })
-  level: number;
+  @ApiProperty({ description: 'Term ID' })
+  @Column({ type: 'uuid' })
+  termId: string;
 
-  @Column({ nullable: true })
-  capacity: number;
+  @ApiProperty({ description: 'Term', type: () => Term })
+  @ManyToOne(() => Term, term => term.classes)
+  @JoinColumn({ name: 'termId' })
+  term: Term;
 
-  @Column({ default: 0 })
-  enrolledStudents: number;
-
+  @ApiProperty({ description: 'Class type', enum: ClassType })
   @Column({
     type: 'enum',
-    enum: ClassStatus,
-    default: ClassStatus.ACTIVE,
+    enum: ClassType,
+    default: ClassType.REGULAR,
   })
-  status: ClassStatus;
+  type: ClassType;
 
+  @ApiProperty({ description: 'Maximum enrollment capacity' })
+  @Column({ type: 'integer' })
+  capacity: number;
+
+  @ApiProperty({ description: 'Current enrollment count' })
+  @Column({ type: 'integer', default: 0 })
+  enrollmentCount: number;
+
+  @ApiProperty({ description: 'Room or location' })
   @Column({ nullable: true })
-  roomNumber: string;
+  room?: string;
 
+  @ApiProperty({ description: 'Building' })
   @Column({ nullable: true })
-  building: string;
+  building?: string;
 
+  @ApiProperty({ description: 'Primary teacher ID' })
+  @Column({ type: 'uuid', nullable: true })
+  primaryTeacherId?: string;
+
+  @ApiProperty({ description: 'Primary teacher', type: () => User })
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'primaryTeacherId' })
+  primaryTeacher?: User;
+
+  @ApiProperty({ description: 'Whether the class is active' })
+  @Column({ default: true })
+  isActive: boolean;
+
+  @ApiProperty({ description: 'Syllabus URL (overrides course syllabus)' })
   @Column({ nullable: true })
-  floor: string;
+  syllabusUrl?: string;
 
-  @Column({ nullable: true })
-  notes: string;
+  @ApiProperty({ description: 'Additional notes' })
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
 
-  @Column({ nullable: true })
-  academicYearId: string;
+  @ApiProperty({ description: 'Class schedules', type: [ClassSchedule] })
+  @OneToMany(() => ClassSchedule, schedule => schedule.class)
+  schedules: ClassSchedule[];
 
-  @ManyToOne(() => AcademicYear, academicYear => academicYear.classes)
-  @JoinColumn({ name: 'academicYearId' })
-  academicYear: AcademicYear;
-
-  @Column({ nullable: true })
-  headTeacherId: string;
-
-  @ManyToOne(() => User, user => user.headTeacherClasses)
-  @JoinColumn({ name: 'headTeacherId' })
-  headTeacher: User;
-
-  @OneToMany(() => Section, section => section.class)
-  sections: Section[];
-
-  @OneToMany(() => Student, student => student.currentClass)
+  @ApiProperty({ description: 'Students enrolled in this class', type: [Student] })
+  @ManyToMany(() => Student)
+  @JoinTable({
+    name: 'class_enrollments',
+    joinColumn: { name: 'classId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'studentId', referencedColumnName: 'id' },
+  })
   students: Student[];
 
+  @ApiProperty({ description: 'Assistant teachers', type: [User] })
   @ManyToMany(() => User)
   @JoinTable({
-    name: 'class_teachers',
+    name: 'class_assistant_teachers',
     joinColumn: { name: 'classId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'teacherId', referencedColumnName: 'id' },
   })
-  teachers: User[];
-
-  @ManyToMany(() => Subject)
-  @JoinTable({
-    name: 'class_subjects',
-    joinColumn: { name: 'classId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'subjectId', referencedColumnName: 'id' },
-  })
-  subjects: Subject[];
-
-  @Column({ nullable: true })
-  createdBy: string;
-
-  @Column({ nullable: true })
-  updatedBy: string;
-
-  @Column({ nullable: true })
-  deletedBy: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt: Date;
+  assistantTeachers: User[];
 }
 

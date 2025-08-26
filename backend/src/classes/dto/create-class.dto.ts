@@ -1,107 +1,79 @@
-import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsEnum,
+import { 
+  IsString, 
   IsUUID,
-  IsArray,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsBoolean,
+  IsUrl,
   Min,
-  Max,
-  MaxLength,
+  IsNotEmpty
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { ClassStatus } from '../entities/class.entity';
+import { ApiProperty } from '@nestjs/swagger';
+import { ClassType } from '../enums/class-type.enum';
 
 export class CreateClassDto {
-  @ApiProperty({ description: 'Class name' })
+  @ApiProperty({ description: 'Class name or section' })
   @IsString()
-  @MaxLength(100)
+  @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ required: false, description: 'Display name for the class' })
-  @IsOptional()
+  @ApiProperty({ description: 'Class code (unique identifier)' })
   @IsString()
-  @MaxLength(100)
-  displayName?: string;
+  @IsNotEmpty()
+  code: string;
 
-  @ApiProperty({ required: false, description: 'Class description' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  description?: string;
+  @ApiProperty({ description: 'Course ID' })
+  @IsUUID()
+  courseId: string;
 
-  @ApiProperty({ required: false, description: 'Grade (e.g., "Grade 1", "Form 3")' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  grade?: string;
+  @ApiProperty({ description: 'Term ID' })
+  @IsUUID()
+  termId: string;
 
-  @ApiProperty({ required: false, description: 'Level number (e.g., 1, 2, 3)' })
+  @ApiProperty({ description: 'Class type', enum: ClassType, required: false })
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
+  @IsEnum(ClassType)
+  type?: ClassType;
+
+  @ApiProperty({ description: 'Maximum enrollment capacity' })
+  @IsInt()
   @Min(1)
-  @Max(20)
-  level?: number;
+  capacity: number;
 
-  @ApiProperty({ required: false, description: 'Maximum capacity of students' })
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  @Min(1)
-  @Max(200)
-  capacity?: number;
-
-  @ApiProperty({ required: false, enum: ClassStatus, default: ClassStatus.ACTIVE, description: 'Class status' })
-  @IsOptional()
-  @IsEnum(ClassStatus)
-  status?: ClassStatus;
-
-  @ApiProperty({ required: false, description: 'Room number' })
+  @ApiProperty({ description: 'Room or location', required: false })
   @IsOptional()
   @IsString()
-  @MaxLength(50)
-  roomNumber?: string;
+  room?: string;
 
-  @ApiProperty({ required: false, description: 'Building name or number' })
+  @ApiProperty({ description: 'Building', required: false })
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   building?: string;
 
-  @ApiProperty({ required: false, description: 'Floor number or name' })
+  @ApiProperty({ description: 'Primary teacher ID', required: false })
   @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  floor?: string;
+  @IsUUID()
+  primaryTeacherId?: string;
 
-  @ApiProperty({ required: false, description: 'Additional notes' })
+  @ApiProperty({ description: 'Whether the class is active', required: false })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiProperty({ description: 'Syllabus URL (overrides course syllabus)', required: false })
+  @IsOptional()
+  @IsUrl()
+  syllabusUrl?: string;
+
+  @ApiProperty({ description: 'Additional notes', required: false })
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
   notes?: string;
 
-  @ApiProperty({ required: false, description: 'Academic year ID' })
+  @ApiProperty({ description: 'Assistant teacher IDs', required: false, type: [String] })
   @IsOptional()
-  @IsUUID()
-  academicYearId?: string;
-
-  @ApiProperty({ required: false, description: 'Head teacher ID' })
-  @IsOptional()
-  @IsUUID()
-  headTeacherId?: string;
-
-  @ApiProperty({ required: false, description: 'Array of teacher IDs' })
-  @IsOptional()
-  @IsArray()
   @IsUUID(undefined, { each: true })
-  teacherIds?: string[];
-
-  @ApiProperty({ required: false, description: 'Array of subject IDs' })
-  @IsOptional()
-  @IsArray()
-  @IsUUID(undefined, { each: true })
-  subjectIds?: string[];
+  assistantTeacherIds?: string[];
 }
 

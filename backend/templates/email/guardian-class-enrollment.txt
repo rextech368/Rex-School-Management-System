@@ -1,0 +1,30 @@
+Your Child's Class Enrollment: {{courseName}}
+
+Dear {{guardianName}},
+
+We are writing to inform you that your child, {{studentName}}, has been enrolled in the following class:
+
+Class Information:
+Class: {{className}}
+Course: {{courseName}} ({{courseCode}})
+Term: {{termName}}
+
+Schedule:
+{{#each schedules}}
+- {{this.dayOfWeek}}: {{this.startTime}} - {{this.endTime}}
+  Location: {{#if this.room}}{{this.room}}{{#if this.building}}, {{this.building}}{{/if}}{{else}}{{#if this.class.room}}{{this.class.room}}{{#if this.class.building}}, {{this.class.building}}{{/if}}{{else}}TBA{{/if}}{{/if}}
+{{/each}}
+
+You can view your child's complete class schedule, assignments, and academic progress on the parent portal:
+{{portalUrl}}
+
+If you have any questions or concerns about this class, please don't hesitate to contact your child's academic advisor or the school administration office.
+
+Thank you for your continued support of your child's education.
+
+Best regards,
+The {{schoolName}} Team
+
+© 2025 {{schoolName}}. All rights reserved.
+This email was sent to you because you are registered as a guardian for {{studentName}}.
+
