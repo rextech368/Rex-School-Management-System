@@ -1,798 +1,608 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
+  Grid,
+  TextField,
   FormControl,
-  FormLabel,
-  Input,
+  InputLabel,
   Select,
-  Textarea,
-  Stack,
-  Heading,
-  SimpleGrid,
+  MenuItem,
+  FormHelperText,
+  Switch,
+  FormControlLabel,
+  Button,
   Divider,
-  useToast,
-  Checkbox,
-  FormErrorMessage,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-} from '@chakra-ui/react';
-import { useForm, Controller } from 'react-hook-form';
-import { useRouter } from 'next/router';
-import axios from 'axios';
-
-// Define the form data type
-interface StudentFormData {
-  admissionNumber: string;
-  firstName: string;
-  lastName: string;
-  middleName?: string;
-  dateOfBirth: string;
-  gender: string;
-  bloodGroup?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
-  phoneNumber?: string;
-  email?: string;
-  nationality?: string;
-  religion?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  emergencyContactRelationship?: string;
-  medicalConditions?: string;
-  allergies?: string;
-  medications?: string;
-  profilePicture?: string;
-  admissionDate: string;
-  graduationDate?: string;
-  status: string;
-  previousSchool?: string;
-  previousSchoolAddress?: string;
-  transferCertificateNumber?: string;
-  birthCertificateNumber?: string;
-  idCardNumber?: string;
-  currentClassId?: string;
-  currentSectionId?: string;
-  academicYearId?: string;
-  rollNumber?: string;
-  house?: string;
-  registrationNumber?: string;
-  specialNeeds?: string;
-  scholarshipInfo?: string;
-  feeCategory?: string;
-  busRouteNumber?: string;
-  busStop?: string;
-  hostelRoomNumber?: string;
-  lockerNumber?: string;
-  createUserAccount: boolean;
-  parentIds?: string[];
-}
+  Typography,
+  Alert,
+  CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Student } from '@/lib/types';
 
 interface StudentFormProps {
-  studentId?: string;
-  isEdit?: boolean;
+  onSubmit: (studentData: any) => void;
+  loading?: boolean;
+  submitButtonId?: string;
+  initialData?: Student;
 }
 
-interface ClassOption {
-  id: string;
-  name: string;
-}
+const StudentForm: React.FC<StudentFormProps> = ({
+  onSubmit,
+  loading = false,
+  submitButtonId,
+  initialData
+}) => {
+  // Personal Information
+  const [firstName, setFirstName] = useState(initialData?.firstName || '');
+  const [lastName, setLastName] = useState(initialData?.lastName || '');
+  const [middleName, setMiddleName] = useState(initialData?.middleName || '');
+  const [email, setEmail] = useState(initialData?.email || '');
+  const [phone, setPhone] = useState(initialData?.phone || '');
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(initialData?.dateOfBirth ? new Date(initialData.dateOfBirth) : null);
+  const [gender, setGender] = useState(initialData?.gender || '');
+  const [address, setAddress] = useState(initialData?.address || '');
+  const [city, setCity] = useState(initialData?.city || '');
+  const [state, setState] = useState(initialData?.state || '');
+  const [zipCode, setZipCode] = useState(initialData?.zipCode || '');
+  const [country, setCountry] = useState(initialData?.country || 'United States');
+  
+  // Academic Information
+  const [studentId, setStudentId] = useState(initialData?.studentId || '');
+  const [gradeLevel, setGradeLevel] = useState<number | ''>(initialData?.gradeLevel || '');
+  const [enrollmentDate, setEnrollmentDate] = useState<Date | null>(initialData?.enrollmentDate ? new Date(initialData.enrollmentDate) : null);
+  const [status, setStatus] = useState(initialData?.status || 'Active');
+  
+  // Guardian Information
+  const [guardianFirstName, setGuardianFirstName] = useState(initialData?.guardianFirstName || '');
+  const [guardianLastName, setGuardianLastName] = useState(initialData?.guardianLastName || '');
+  const [guardianEmail, setGuardianEmail] = useState(initialData?.guardianEmail || '');
+  const [guardianPhone, setGuardianPhone] = useState(initialData?.guardianPhone || '');
+  const [guardianRelationship, setGuardianRelationship] = useState(initialData?.guardianRelationship || '');
+  const [guardianAddress, setGuardianAddress] = useState(initialData?.guardianAddress || '');
+  const [sameAsStudent, setSameAsStudent] = useState(false);
+  
+  // Additional Information
+  const [emergencyContactName, setEmergencyContactName] = useState(initialData?.emergencyContactName || '');
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState(initialData?.emergencyContactPhone || '');
+  const [emergencyContactRelationship, setEmergencyContactRelationship] = useState(initialData?.emergencyContactRelationship || '');
+  const [medicalInformation, setMedicalInformation] = useState(initialData?.medicalInformation || '');
+  const [notes, setNotes] = useState(initialData?.notes || '');
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-interface SectionOption {
-  id: string;
-  name: string;
-}
-
-interface AcademicYearOption {
-  id: string;
-  name: string;
-  isCurrent: boolean;
-}
-
-interface ParentOption {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-const StudentForm: React.FC<StudentFormProps> = ({ studentId, isEdit = false }) => {
-  const router = useRouter();
-  const toast = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [classes, setClasses] = useState<ClassOption[]>([]);
-  const [sections, setSections] = useState<SectionOption[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);
-  const [parents, setParents] = useState<ParentOption[]>([]);
-  const [selectedParents, setSelectedParents] = useState<string[]>([]);
-
-  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<StudentFormData>({
-    defaultValues: {
-      status: 'active',
-      createUserAccount: true,
-      admissionDate: new Date().toISOString().split('T')[0],
-    }
-  });
-
-  // Fetch classes, sections, academic years, and parents
+  // Update guardian address when sameAsStudent changes
   useEffect(() => {
-    const fetchOptions = async () => {
-      try {
-        // Fetch classes
-        const classesResponse = await axios.get('/api/v1/classes');
-        setClasses(classesResponse.data.data);
-
-        // Fetch sections
-        const sectionsResponse = await axios.get('/api/v1/sections');
-        setSections(sectionsResponse.data.data);
-
-        // Fetch academic years
-        const academicYearsResponse = await axios.get('/api/v1/academic-years');
-        setAcademicYears(academicYearsResponse.data.data);
-
-        // Fetch parents
-        const parentsResponse = await axios.get('/api/v1/parents');
-        setParents(parentsResponse.data.data);
-      } catch (error) {
-        console.error('Error fetching options:', error);
-        toast({
-          title: 'Error fetching data',
-          description: 'Could not load form options. Please try again.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    };
-
-    fetchOptions();
-  }, [toast]);
-
-  // Fetch student data if in edit mode
-  useEffect(() => {
-    if (isEdit && studentId) {
-      const fetchStudent = async () => {
-        try {
-          const response = await axios.get(`/api/v1/students/${studentId}`);
-          const studentData = response.data;
-          
-          // Format dates for form inputs
-          if (studentData.dateOfBirth) {
-            studentData.dateOfBirth = new Date(studentData.dateOfBirth).toISOString().split('T')[0];
-          }
-          if (studentData.admissionDate) {
-            studentData.admissionDate = new Date(studentData.admissionDate).toISOString().split('T')[0];
-          }
-          if (studentData.graduationDate) {
-            studentData.graduationDate = new Date(studentData.graduationDate).toISOString().split('T')[0];
-          }
-          
-          // Set selected parents
-          if (studentData.parents && studentData.parents.length > 0) {
-            const parentIds = studentData.parents.map(parent => parent.id);
-            setSelectedParents(parentIds);
-            studentData.parentIds = parentIds;
-          }
-          
-          reset(studentData);
-        } catch (error) {
-          console.error('Error fetching student:', error);
-          toast({
-            title: 'Error',
-            description: 'Could not load student data. Please try again.',
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
-        }
-      };
-
-      fetchStudent();
+    if (sameAsStudent) {
+      setGuardianAddress(address);
     }
-  }, [isEdit, studentId, reset, toast]);
+  }, [sameAsStudent, address]);
 
-  const onSubmit = async (data: StudentFormData) => {
-    setIsSubmitting(true);
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
     
-    try {
-      // Add selected parents to the form data
-      data.parentIds = selectedParents;
-      
-      if (isEdit && studentId) {
-        // Update existing student
-        await axios.put(`/api/v1/students/${studentId}`, data);
-        toast({
-          title: 'Success',
-          description: 'Student updated successfully',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-      } else {
-        // Create new student
-        await axios.post('/api/v1/students', data);
-        toast({
-          title: 'Success',
-          description: 'Student created successfully',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-        reset(); // Clear form after successful creation
-      }
-      
-      // Redirect to students list
-      router.push('/students');
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast({
-        title: 'Error',
-        description: 'An error occurred. Please try again.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setIsSubmitting(false);
+    if (!firstName.trim()) {
+      newErrors.firstName = 'First name is required';
     }
+    
+    if (!lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+    
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    
+    if (guardianEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail)) {
+      newErrors.guardianEmail = 'Invalid email format';
+    }
+    
+    if (phone && !/^\d{10}$/.test(phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Phone number should be 10 digits';
+    }
+    
+    if (guardianPhone && !/^\d{10}$/.test(guardianPhone.replace(/\D/g, ''))) {
+      newErrors.guardianPhone = 'Phone number should be 10 digits';
+    }
+    
+    if (emergencyContactPhone && !/^\d{10}$/.test(emergencyContactPhone.replace(/\D/g, ''))) {
+      newErrors.emergencyContactPhone = 'Phone number should be 10 digits';
+    }
+    
+    if (dateOfBirth) {
+      const today = new Date();
+      const age = today.getFullYear() - dateOfBirth.getFullYear();
+      if (age < 4 || age > 22) {
+        newErrors.dateOfBirth = 'Student age should be between 4 and 22 years';
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleParentSelection = (parentId: string) => {
-    setSelectedParents(prev => {
-      if (prev.includes(parentId)) {
-        return prev.filter(id => id !== parentId);
-      } else {
-        return [...prev, parentId];
-      }
-    });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    const studentData = {
+      firstName,
+      lastName,
+      middleName,
+      email,
+      phone,
+      dateOfBirth,
+      gender,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+      studentId,
+      gradeLevel,
+      enrollmentDate,
+      status,
+      guardianFirstName,
+      guardianLastName,
+      guardianEmail,
+      guardianPhone,
+      guardianRelationship,
+      guardianAddress,
+      emergencyContactName,
+      emergencyContactPhone,
+      emergencyContactRelationship,
+      medicalInformation,
+      notes
+    };
+    
+    onSubmit(studentData);
+  };
+
+  const generateStudentId = () => {
+    // Generate a student ID based on name and current date
+    const year = new Date().getFullYear().toString().slice(-2);
+    const firstInitial = firstName.charAt(0).toUpperCase();
+    const lastInitial = lastName.charAt(0).toUpperCase();
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+    
+    setStudentId(`${year}${firstInitial}${lastInitial}${randomDigits}`);
   };
 
   return (
-    <Box as="form" onSubmit={handleSubmit(onSubmit)} p={4}>
-      <Heading size="lg" mb={6}>
-        {isEdit ? 'Edit Student' : 'Add New Student'}
-      </Heading>
-
-      <Tabs variant="enclosed" mb={6}>
-        <TabList>
-          <Tab>Basic Information</Tab>
-          <Tab>Contact Details</Tab>
-          <Tab>Academic Information</Tab>
-          <Tab>Medical Information</Tab>
-          <Tab>Additional Details</Tab>
-          <Tab>Parents</Tab>
-        </TabList>
-
-        <TabPanels>
-          {/* Basic Information Tab */}
-          <TabPanel>
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-              <FormControl isRequired isInvalid={!!errors.admissionNumber}>
-                <FormLabel>Admission Number</FormLabel>
-                <Input
-                  {...register('admissionNumber', { required: 'Admission number is required' })}
-                  placeholder="e.g., ADM-2023-001"
-                  isReadOnly={isEdit} // Make read-only in edit mode
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>
+              Personal Information
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              error={!!errors.firstName}
+              helperText={errors.firstName}
+              required
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Middle Name"
+              value={middleName}
+              onChange={(e) => setMiddleName(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              error={!!errors.lastName}
+              helperText={errors.lastName}
+              required
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={!!errors.email}
+              helperText={errors.email}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              error={!!errors.phone}
+              helperText={errors.phone}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <DatePicker
+              label="Date of Birth"
+              value={dateOfBirth}
+              onChange={(newValue) => setDateOfBirth(newValue)}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  error: !!errors.dateOfBirth,
+                  helperText: errors.dateOfBirth,
+                  disabled: loading
+                }
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth disabled={loading}>
+              <InputLabel id="gender-label">Gender</InputLabel>
+              <Select
+                labelId="gender-label"
+                value={gender}
+                label="Gender"
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <MenuItem value="Male">Male</MenuItem>
+                <MenuItem value="Female">Female</MenuItem>
+                <MenuItem value="Non-Binary">Non-Binary</MenuItem>
+                <MenuItem value="Prefer not to say">Prefer not to say</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="City"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="State/Province"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="ZIP/Postal Code"
+              value={zipCode}
+              onChange={(e) => setZipCode(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+              Academic Information
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Student ID"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <Button 
+                    onClick={generateStudentId}
+                    disabled={loading}
+                    size="small"
+                  >
+                    Generate
+                  </Button>
+                ),
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth disabled={loading}>
+              <InputLabel id="grade-level-label">Grade Level</InputLabel>
+              <Select
+                labelId="grade-level-label"
+                value={gradeLevel}
+                label="Grade Level"
+                onChange={(e) => setGradeLevel(e.target.value as number | '')}
+              >
+                <MenuItem value="">Not Assigned</MenuItem>
+                {[...Array(12)].map((_, i) => (
+                  <MenuItem key={i + 1} value={i + 1}>
+                    Grade {i + 1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <DatePicker
+              label="Enrollment Date"
+              value={enrollmentDate}
+              onChange={(newValue) => setEnrollmentDate(newValue)}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  disabled: loading
+                }
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth disabled={loading}>
+              <InputLabel id="status-label">Status</InputLabel>
+              <Select
+                labelId="status-label"
+                value={status}
+                label="Status"
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                <MenuItem value="Graduated">Graduated</MenuItem>
+                <MenuItem value="Transferred">Transferred</MenuItem>
+                <MenuItem value="Withdrawn">Withdrawn</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+              Guardian Information
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Guardian First Name"
+              value={guardianFirstName}
+              onChange={(e) => setGuardianFirstName(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Guardian Last Name"
+              value={guardianLastName}
+              onChange={(e) => setGuardianLastName(e.target.value)}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Guardian Email"
+              type="email"
+              value={guardianEmail}
+              onChange={(e) => setGuardianEmail(e.target.value)}
+              error={!!errors.guardianEmail}
+              helperText={errors.guardianEmail}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Guardian Phone"
+              value={guardianPhone}
+              onChange={(e) => setGuardianPhone(e.target.value)}
+              error={!!errors.guardianPhone}
+              helperText={errors.guardianPhone}
+              disabled={loading}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth disabled={loading}>
+              <InputLabel id="guardian-relationship-label">Relationship</InputLabel>
+              <Select
+                labelId="guardian-relationship-label"
+                value={guardianRelationship}
+                label="Relationship"
+                onChange={(e) => setGuardianRelationship(e.target.value)}
+              >
+                <MenuItem value="Parent">Parent</MenuItem>
+                <MenuItem value="Guardian">Guardian</MenuItem>
+                <MenuItem value="Grandparent">Grandparent</MenuItem>
+                <MenuItem value="Sibling">Sibling</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={sameAsStudent}
+                  onChange={(e) => setSameAsStudent(e.target.checked)}
+                  disabled={loading}
                 />
-                <FormErrorMessage>{errors.admissionNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.firstName}>
-                <FormLabel>First Name</FormLabel>
-                <Input
-                  {...register('firstName', { required: 'First name is required' })}
-                  placeholder="First Name"
-                />
-                <FormErrorMessage>{errors.firstName?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.lastName}>
-                <FormLabel>Last Name</FormLabel>
-                <Input
-                  {...register('lastName', { required: 'Last name is required' })}
-                  placeholder="Last Name"
-                />
-                <FormErrorMessage>{errors.lastName?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.middleName}>
-                <FormLabel>Middle Name</FormLabel>
-                <Input
-                  {...register('middleName')}
-                  placeholder="Middle Name (optional)"
-                />
-                <FormErrorMessage>{errors.middleName?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.dateOfBirth}>
-                <FormLabel>Date of Birth</FormLabel>
-                <Input
-                  type="date"
-                  {...register('dateOfBirth', { required: 'Date of birth is required' })}
-                />
-                <FormErrorMessage>{errors.dateOfBirth?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.gender}>
-                <FormLabel>Gender</FormLabel>
-                <Select
-                  {...register('gender', { required: 'Gender is required' })}
-                  placeholder="Select gender"
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </Select>
-                <FormErrorMessage>{errors.gender?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.bloodGroup}>
-                <FormLabel>Blood Group</FormLabel>
-                <Select
-                  {...register('bloodGroup')}
-                  placeholder="Select blood group (optional)"
-                >
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                </Select>
-                <FormErrorMessage>{errors.bloodGroup?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.admissionDate}>
-                <FormLabel>Admission Date</FormLabel>
-                <Input
-                  type="date"
-                  {...register('admissionDate', { required: 'Admission date is required' })}
-                />
-                <FormErrorMessage>{errors.admissionDate?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.graduationDate}>
-                <FormLabel>Graduation Date</FormLabel>
-                <Input
-                  type="date"
-                  {...register('graduationDate')}
-                />
-                <FormErrorMessage>{errors.graduationDate?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.status}>
-                <FormLabel>Status</FormLabel>
-                <Select
-                  {...register('status', { required: 'Status is required' })}
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="graduated">Graduated</option>
-                  <option value="transferred">Transferred</option>
-                  <option value="suspended">Suspended</option>
-                  <option value="expelled">Expelled</option>
-                  <option value="alumni">Alumni</option>
-                  <option value="pending">Pending</option>
-                </Select>
-                <FormErrorMessage>{errors.status?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.nationality}>
-                <FormLabel>Nationality</FormLabel>
-                <Input
-                  {...register('nationality')}
-                  placeholder="e.g., Cameroonian"
-                />
-                <FormErrorMessage>{errors.nationality?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.religion}>
-                <FormLabel>Religion</FormLabel>
-                <Input
-                  {...register('religion')}
-                  placeholder="e.g., Christianity"
-                />
-                <FormErrorMessage>{errors.religion?.message}</FormErrorMessage>
-              </FormControl>
-            </SimpleGrid>
-          </TabPanel>
-
-          {/* Contact Details Tab */}
-          <TabPanel>
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-              <FormControl isInvalid={!!errors.address}>
-                <FormLabel>Address</FormLabel>
-                <Textarea
-                  {...register('address')}
-                  placeholder="Street address"
-                />
-                <FormErrorMessage>{errors.address?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.city}>
-                <FormLabel>City</FormLabel>
-                <Input
-                  {...register('city')}
-                  placeholder="City"
-                />
-                <FormErrorMessage>{errors.city?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.state}>
-                <FormLabel>State/Province</FormLabel>
-                <Input
-                  {...register('state')}
-                  placeholder="State/Province"
-                />
-                <FormErrorMessage>{errors.state?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.country}>
-                <FormLabel>Country</FormLabel>
-                <Input
-                  {...register('country')}
-                  placeholder="Country"
-                />
-                <FormErrorMessage>{errors.country?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.postalCode}>
-                <FormLabel>Postal Code</FormLabel>
-                <Input
-                  {...register('postalCode')}
-                  placeholder="Postal Code"
-                />
-                <FormErrorMessage>{errors.postalCode?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.phoneNumber}>
-                <FormLabel>Phone Number</FormLabel>
-                <Input
-                  {...register('phoneNumber')}
-                  placeholder="e.g., +237612345678"
-                />
-                <FormErrorMessage>{errors.phoneNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.email}>
-                <FormLabel>Email Address</FormLabel>
-                <Input
-                  type="email"
-                  {...register('email')}
-                  placeholder="e.g., student@example.com"
-                />
-                <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.emergencyContactName}>
-                <FormLabel>Emergency Contact Name</FormLabel>
-                <Input
-                  {...register('emergencyContactName')}
-                  placeholder="Emergency Contact Name"
-                />
-                <FormErrorMessage>{errors.emergencyContactName?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.emergencyContactPhone}>
-                <FormLabel>Emergency Contact Phone</FormLabel>
-                <Input
-                  {...register('emergencyContactPhone')}
-                  placeholder="Emergency Contact Phone"
-                />
-                <FormErrorMessage>{errors.emergencyContactPhone?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.emergencyContactRelationship}>
-                <FormLabel>Emergency Contact Relationship</FormLabel>
-                <Input
-                  {...register('emergencyContactRelationship')}
-                  placeholder="e.g., Parent, Guardian"
-                />
-                <FormErrorMessage>{errors.emergencyContactRelationship?.message}</FormErrorMessage>
-              </FormControl>
-            </SimpleGrid>
-          </TabPanel>
-
-          {/* Academic Information Tab */}
-          <TabPanel>
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-              <FormControl isInvalid={!!errors.currentClassId}>
-                <FormLabel>Current Class</FormLabel>
-                <Select
-                  {...register('currentClassId')}
-                  placeholder="Select class"
-                >
-                  {classes.map(classOption => (
-                    <option key={classOption.id} value={classOption.id}>
-                      {classOption.name}
-                    </option>
-                  ))}
-                </Select>
-                <FormErrorMessage>{errors.currentClassId?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.currentSectionId}>
-                <FormLabel>Current Section</FormLabel>
-                <Select
-                  {...register('currentSectionId')}
-                  placeholder="Select section"
-                >
-                  {sections.map(section => (
-                    <option key={section.id} value={section.id}>
-                      {section.name}
-                    </option>
-                  ))}
-                </Select>
-                <FormErrorMessage>{errors.currentSectionId?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.academicYearId}>
-                <FormLabel>Academic Year</FormLabel>
-                <Select
-                  {...register('academicYearId')}
-                  placeholder="Select academic year"
-                >
-                  {academicYears.map(year => (
-                    <option key={year.id} value={year.id}>
-                      {year.name} {year.isCurrent ? '(Current)' : ''}
-                    </option>
-                  ))}
-                </Select>
-                <FormErrorMessage>{errors.academicYearId?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.rollNumber}>
-                <FormLabel>Roll Number</FormLabel>
-                <Input
-                  {...register('rollNumber')}
-                  placeholder="Roll Number"
-                />
-                <FormErrorMessage>{errors.rollNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.registrationNumber}>
-                <FormLabel>Registration Number</FormLabel>
-                <Input
-                  {...register('registrationNumber')}
-                  placeholder="Registration Number"
-                />
-                <FormErrorMessage>{errors.registrationNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.house}>
-                <FormLabel>House/Team</FormLabel>
-                <Input
-                  {...register('house')}
-                  placeholder="e.g., Red House"
-                />
-                <FormErrorMessage>{errors.house?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.previousSchool}>
-                <FormLabel>Previous School</FormLabel>
-                <Input
-                  {...register('previousSchool')}
-                  placeholder="Previous School Name"
-                />
-                <FormErrorMessage>{errors.previousSchool?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.previousSchoolAddress}>
-                <FormLabel>Previous School Address</FormLabel>
-                <Textarea
-                  {...register('previousSchoolAddress')}
-                  placeholder="Previous School Address"
-                />
-                <FormErrorMessage>{errors.previousSchoolAddress?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.transferCertificateNumber}>
-                <FormLabel>Transfer Certificate Number</FormLabel>
-                <Input
-                  {...register('transferCertificateNumber')}
-                  placeholder="Transfer Certificate Number"
-                />
-                <FormErrorMessage>{errors.transferCertificateNumber?.message}</FormErrorMessage>
-              </FormControl>
-            </SimpleGrid>
-          </TabPanel>
-
-          {/* Medical Information Tab */}
-          <TabPanel>
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-              <FormControl isInvalid={!!errors.medicalConditions}>
-                <FormLabel>Medical Conditions</FormLabel>
-                <Textarea
-                  {...register('medicalConditions')}
-                  placeholder="Any medical conditions"
-                />
-                <FormErrorMessage>{errors.medicalConditions?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.allergies}>
-                <FormLabel>Allergies</FormLabel>
-                <Textarea
-                  {...register('allergies')}
-                  placeholder="Any allergies"
-                />
-                <FormErrorMessage>{errors.allergies?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.medications}>
-                <FormLabel>Medications</FormLabel>
-                <Textarea
-                  {...register('medications')}
-                  placeholder="Any regular medications"
-                />
-                <FormErrorMessage>{errors.medications?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.specialNeeds}>
-                <FormLabel>Special Needs</FormLabel>
-                <Textarea
-                  {...register('specialNeeds')}
-                  placeholder="Any special needs or accommodations"
-                />
-                <FormErrorMessage>{errors.specialNeeds?.message}</FormErrorMessage>
-              </FormControl>
-            </SimpleGrid>
-          </TabPanel>
-
-          {/* Additional Details Tab */}
-          <TabPanel>
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-              <FormControl isInvalid={!!errors.birthCertificateNumber}>
-                <FormLabel>Birth Certificate Number</FormLabel>
-                <Input
-                  {...register('birthCertificateNumber')}
-                  placeholder="Birth Certificate Number"
-                />
-                <FormErrorMessage>{errors.birthCertificateNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.idCardNumber}>
-                <FormLabel>ID Card Number</FormLabel>
-                <Input
-                  {...register('idCardNumber')}
-                  placeholder="ID Card Number"
-                />
-                <FormErrorMessage>{errors.idCardNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.scholarshipInfo}>
-                <FormLabel>Scholarship Information</FormLabel>
-                <Textarea
-                  {...register('scholarshipInfo')}
-                  placeholder="Scholarship details if applicable"
-                />
-                <FormErrorMessage>{errors.scholarshipInfo?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.feeCategory}>
-                <FormLabel>Fee Category</FormLabel>
-                <Input
-                  {...register('feeCategory')}
-                  placeholder="e.g., Standard, Scholarship"
-                />
-                <FormErrorMessage>{errors.feeCategory?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.busRouteNumber}>
-                <FormLabel>Bus Route Number</FormLabel>
-                <Input
-                  {...register('busRouteNumber')}
-                  placeholder="Bus Route Number"
-                />
-                <FormErrorMessage>{errors.busRouteNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.busStop}>
-                <FormLabel>Bus Stop</FormLabel>
-                <Input
-                  {...register('busStop')}
-                  placeholder="Bus Stop"
-                />
-                <FormErrorMessage>{errors.busStop?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.hostelRoomNumber}>
-                <FormLabel>Hostel Room Number</FormLabel>
-                <Input
-                  {...register('hostelRoomNumber')}
-                  placeholder="Hostel Room Number"
-                />
-                <FormErrorMessage>{errors.hostelRoomNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.lockerNumber}>
-                <FormLabel>Locker Number</FormLabel>
-                <Input
-                  {...register('lockerNumber')}
-                  placeholder="Locker Number"
-                />
-                <FormErrorMessage>{errors.lockerNumber?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={!!errors.profilePicture}>
-                <FormLabel>Profile Picture URL</FormLabel>
-                <Input
-                  {...register('profilePicture')}
-                  placeholder="Profile Picture URL"
-                />
-                <FormErrorMessage>{errors.profilePicture?.message}</FormErrorMessage>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Create User Account</FormLabel>
-                <Controller
-                  name="createUserAccount"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      isChecked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                      isDisabled={isEdit} // Disable in edit mode
-                    >
-                      Create user account for this student
-                    </Checkbox>
-                  )}
-                />
-              </FormControl>
-            </SimpleGrid>
-          </TabPanel>
-
-          {/* Parents Tab */}
-          <TabPanel>
-            <Box mb={4}>
-              <Heading size="md" mb={2}>Associate Parents</Heading>
-              <Box maxH="400px" overflowY="auto" p={2} border="1px" borderColor="gray.200" borderRadius="md">
-                {parents.length > 0 ? (
-                  parents.map(parent => (
-                    <Box key={parent.id} p={2} borderBottom="1px" borderColor="gray.100">
-                      <Checkbox
-                        isChecked={selectedParents.includes(parent.id)}
-                        onChange={() => handleParentSelection(parent.id)}
-                      >
-                        {parent.firstName} {parent.lastName} ({parent.email})
-                      </Checkbox>
-                    </Box>
-                  ))
-                ) : (
-                  <Box p={4} textAlign="center">No parents found. Please add parents first.</Box>
-                )}
-              </Box>
+              }
+              label="Same address as student"
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Guardian Address"
+              value={guardianAddress}
+              onChange={(e) => setGuardianAddress(e.target.value)}
+              disabled={loading || sameAsStudent}
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography>Additional Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Emergency Contact
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Emergency Contact Name"
+                      value={emergencyContactName}
+                      onChange={(e) => setEmergencyContactName(e.target.value)}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Emergency Contact Phone"
+                      value={emergencyContactPhone}
+                      onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                      error={!!errors.emergencyContactPhone}
+                      helperText={errors.emergencyContactPhone}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Emergency Contact Relationship"
+                      value={emergencyContactRelationship}
+                      onChange={(e) => setEmergencyContactRelationship(e.target.value)}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+                      Medical Information
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      label="Medical Information"
+                      value={medicalInformation}
+                      onChange={(e) => setMedicalInformation(e.target.value)}
+                      multiline
+                      rows={3}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+                      Notes
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      label="Additional Notes"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      multiline
+                      rows={3}
+                      disabled={loading}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                id={submitButtonId}
+                sx={{ display: 'none' }}
+              >
+                {loading ? (
+                  <>
+                    <CircularProgress size={24} sx={{ mr: 1 }} />
+                    Saving...
+                  </>
+                ) : initialData ? 'Update Student' : 'Create Student'}
+              </Button>
             </Box>
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-
-      <Divider my={6} />
-
-      <Stack direction="row" spacing={4} justifyContent="flex-end">
-        <Button
-          variant="outline"
-          onClick={() => router.push('/students')}
-        >
-          Cancel
-        </Button>
-        <Button
-          colorScheme="blue"
-          type="submit"
-          isLoading={isSubmitting}
-          loadingText="Submitting"
-        >
-          {isEdit ? 'Update Student' : 'Create Student'}
-        </Button>
-      </Stack>
-    </Box>
+          </Grid>
+        </Grid>
+      </form>
+    </LocalizationProvider>
   );
 };
 

@@ -1,472 +1,420 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
-  Flex,
-  Heading,
+  Paper,
   Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Chip,
   IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  Text,
-  Badge,
-  Input,
-  Select,
-  HStack,
-  useToast,
   Tooltip,
-  Spinner,
-  Link,
-  Checkbox,
-} from '@chakra-ui/react';
-import { ChevronDownIcon, AddIcon, EditIcon, DeleteIcon, ViewIcon, DownloadIcon } from '@chakra-ui/icons';
-import { FaFileExcel, FaFilePdf, FaFileCsv } from 'react-icons/fa';
-import NextLink from 'next/link';
-import axios from 'axios';
+  Button,
+  TextField,
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+  Avatar,
+  Typography,
+  CircularProgress,
+  Alert
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import SearchIcon from '@mui/icons-material/Search';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import { useRouter } from 'next/router';
-
-interface Student {
-  id: string;
-  admissionNumber: string;
-  firstName: string;
-  lastName: string;
-  gender: string;
-  dateOfBirth: string;
-  status: string;
-  currentClass?: {
-    name: string;
-  };
-  currentSection?: {
-    name: string;
-  };
-}
+import { Student } from '@/lib/types';
 
 interface StudentListProps {
-  initialStudents?: Student[];
+  isAdmin: boolean;
+  teacherId?: string;
 }
 
-const StudentList: React.FC<StudentListProps> = ({ initialStudents = [] }) => {
-  const router = useRouter();
-  const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+const StudentList: React.FC<StudentListProps> = ({
+  isAdmin,
+  teacherId
+}) => {
   const [loading, setLoading] = useState(true);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [classFilter, setClassFilter] = useState('');
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalStudents, setTotalStudents] = useState(0);
-  const [limit, setLimit] = useState(10);
+  const [gradeFilter, setGradeFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const router = useRouter();
 
-  // Fetch students
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
+        // Build query parameters
         const params = new URLSearchParams();
-        params.append('page', page.toString());
-        params.append('limit', limit.toString());
+        if (teacherId) params.append('teacherId', teacherId);
         
-        if (searchTerm) params.append('name', searchTerm);
-        if (statusFilter) params.append('status', statusFilter);
-        if (classFilter) params.append('classId', classFilter);
+        const response = await fetch(`/api/students${params.toString() ? `?${params.toString()}` : ''}`);
         
-        const response = await axios.get(`/api/v1/students?${params.toString()}`);
-        setStudents(response.data.data);
-        setTotalPages(response.data.meta.totalPages);
-        setTotalStudents(response.data.meta.total);
-      } catch (error) {
-        console.error('Error fetching students:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch students',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch students');
+        }
+        
+        const data = await response.json();
+        setStudents(data);
+      } catch (err) {
+        console.error('Error fetching students:', err);
+        setError('Failed to load students. Please try again later.');
+        
+        // For demo purposes, set some mock data
+        setStudents([
+          {
+            id: '1',
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john.doe@example.com',
+            gradeLevel: 9,
+            status: 'Active',
+            enrollmentDate: '2023-08-15',
+            guardianFirstName: 'Jane',
+            guardianLastName: 'Doe',
+            guardianEmail: 'jane.doe@example.com',
+            guardianPhone: '555-123-4567'
+          },
+          {
+            id: '2',
+            firstName: 'Jane',
+            lastName: 'Smith',
+            email: 'jane.smith@example.com',
+            gradeLevel: 10,
+            status: 'Active',
+            enrollmentDate: '2023-08-10',
+            guardianFirstName: 'John',
+            guardianLastName: 'Smith',
+            guardianEmail: 'john.smith@example.com',
+            guardianPhone: '555-987-6543'
+          },
+          {
+            id: '3',
+            firstName: 'Michael',
+            lastName: 'Johnson',
+            email: 'michael.johnson@example.com',
+            gradeLevel: 11,
+            status: 'Active',
+            enrollmentDate: '2023-08-12',
+            guardianFirstName: 'Sarah',
+            guardianLastName: 'Johnson',
+            guardianEmail: 'sarah.johnson@example.com',
+            guardianPhone: '555-456-7890'
+          },
+          {
+            id: '4',
+            firstName: 'Emily',
+            lastName: 'Williams',
+            email: 'emily.williams@example.com',
+            gradeLevel: 9,
+            status: 'Active',
+            enrollmentDate: '2023-08-14',
+            guardianFirstName: 'Robert',
+            guardianLastName: 'Williams',
+            guardianEmail: 'robert.williams@example.com',
+            guardianPhone: '555-789-0123'
+          },
+          {
+            id: '5',
+            firstName: 'David',
+            lastName: 'Brown',
+            email: 'david.brown@example.com',
+            gradeLevel: 12,
+            status: 'Active',
+            enrollmentDate: '2023-08-11',
+            guardianFirstName: 'Linda',
+            guardianLastName: 'Brown',
+            guardianEmail: 'linda.brown@example.com',
+            guardianPhone: '555-321-6547'
+          }
+        ]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStudents();
-  }, [page, limit, searchTerm, statusFilter, classFilter, toast]);
+  }, [teacherId]);
 
-  // Fetch classes for filter
-  useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const response = await axios.get('/api/v1/classes');
-        setClasses(response.data.data);
-      } catch (error) {
-        console.error('Error fetching classes:', error);
-      }
-    };
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
 
-    fetchClasses();
-  }, []);
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
-  const handleDelete = async () => {
-    if (!selectedStudent) return;
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(0);
+  };
 
-    try {
-      await axios.delete(`/api/v1/students/${selectedStudent.id}`);
-      setStudents(students.filter(student => student.id !== selectedStudent.id));
-      onClose();
-      toast({
-        title: 'Success',
-        description: 'Student deleted successfully',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error('Error deleting student:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete student',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+  const handleGradeFilterChange = (event: SelectChangeEvent) => {
+    setGradeFilter(event.target.value);
+    setPage(0);
+  };
+
+  const handleStatusFilterChange = (event: SelectChangeEvent) => {
+    setStatusFilter(event.target.value);
+    setPage(0);
+  };
+
+  const handleViewStudent = (studentId: string) => {
+    router.push(`/students/${studentId}`);
+  };
+
+  const handleEditStudent = (studentId: string) => {
+    router.push(`/students/${studentId}/edit`);
+  };
+
+  const handleDeleteStudent = async (studentId: string) => {
+    if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+      return;
     }
-  };
-
-  const confirmDelete = (student: Student) => {
-    setSelectedStudent(student);
-    onOpen();
-  };
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setPage(1); // Reset to first page on new search
-  };
-
-  const handleStatusFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
-    setPage(1); // Reset to first page on new filter
-  };
-
-  const handleClassFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setClassFilter(e.target.value);
-    setPage(1); // Reset to first page on new filter
-  };
-
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedStudents(students.map(student => student.id));
-    } else {
-      setSelectedStudents([]);
-    }
-  };
-
-  const handleSelectStudent = (id: string) => {
-    setSelectedStudents(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(studentId => studentId !== id);
-      } else {
-        return [...prev, id];
-      }
-    });
-  };
-
-  const exportStudents = (format: 'pdf' | 'excel' | 'csv') => {
-    const params = new URLSearchParams();
-    if (searchTerm) params.append('name', searchTerm);
-    if (statusFilter) params.append('status', statusFilter);
-    if (classFilter) params.append('classId', classFilter);
     
-    // Create a link element and trigger download
-    const link = document.createElement('a');
-    link.href = `/api/v1/students/export/${format}?${params.toString()}`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`/api/students/${studentId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete student');
+      }
+      
+      // Remove the deleted student from the list
+      setStudents(students.filter(student => student.id !== studentId));
+    } catch (err) {
+      console.error('Error deleting student:', err);
+      setError('Failed to delete student. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getStatusBadge = (status: string) => {
-    let colorScheme;
-    switch (status) {
-      case 'active':
-        colorScheme = 'green';
-        break;
-      case 'inactive':
-        colorScheme = 'gray';
-        break;
-      case 'graduated':
-        colorScheme = 'blue';
-        break;
-      case 'transferred':
-        colorScheme = 'purple';
-        break;
-      case 'suspended':
-        colorScheme = 'orange';
-        break;
-      case 'expelled':
-        colorScheme = 'red';
-        break;
-      case 'alumni':
-        colorScheme = 'teal';
-        break;
-      case 'pending':
-        colorScheme = 'yellow';
-        break;
-      default:
-        colorScheme = 'gray';
-    }
-    return <Badge colorScheme={colorScheme}>{status}</Badge>;
-  };
+  // Filter students based on search term and filters
+  const filteredStudents = students.filter(student => {
+    const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
+    const matchesSearch = 
+      searchTerm === '' || 
+      fullName.includes(searchTerm.toLowerCase()) ||
+      (student.email && student.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (student.studentId && student.studentId.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesGrade = 
+      gradeFilter === '' || 
+      student.gradeLevel?.toString() === gradeFilter;
+    
+    const matchesStatus = 
+      statusFilter === '' || 
+      student.status === statusFilter;
+    
+    return matchesSearch && matchesGrade && matchesStatus;
+  });
+
+  // Pagination
+  const paginatedStudents = filteredStudents.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
-    <Box p={4}>
-      <Flex justifyContent="space-between" alignItems="center" mb={6}>
-        <Heading size="lg">Students</Heading>
-        <NextLink href="/students/new" passHref>
-          <Button as="a" leftIcon={<AddIcon />} colorScheme="blue">
-            Add Student
-          </Button>
-        </NextLink>
-      </Flex>
-
-      <Flex mb={4} flexWrap="wrap" gap={2}>
-        <Input
-          placeholder="Search by name or admission number"
+    <Box>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, p: 2 }}>
+        <TextField
+          label="Search Students"
+          variant="outlined"
+          size="small"
           value={searchTerm}
-          onChange={handleSearch}
-          width={{ base: 'full', md: 'auto' }}
-          flex={{ md: 1 }}
+          onChange={handleSearchChange}
+          sx={{ flexGrow: 1 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
         />
-        <Select
-          placeholder="Filter by status"
-          value={statusFilter}
-          onChange={handleStatusFilter}
-          width={{ base: 'full', md: '200px' }}
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="graduated">Graduated</option>
-          <option value="transferred">Transferred</option>
-          <option value="suspended">Suspended</option>
-          <option value="expelled">Expelled</option>
-          <option value="alumni">Alumni</option>
-          <option value="pending">Pending</option>
-        </Select>
-        <Select
-          placeholder="Filter by class"
-          value={classFilter}
-          onChange={handleClassFilter}
-          width={{ base: 'full', md: '200px' }}
-        >
-          <option value="">All Classes</option>
-          {classes.map(cls => (
-            <option key={cls.id} value={cls.id}>
-              {cls.name}
-            </option>
-          ))}
-        </Select>
-        <Menu>
-          <MenuButton as={Button} rightIcon={<ChevronDownIcon />} colorScheme="teal">
-            Export
-          </MenuButton>
-          <MenuList>
-            <MenuItem icon={<FaFilePdf />} onClick={() => exportStudents('pdf')}>
-              Export as PDF
-            </MenuItem>
-            <MenuItem icon={<FaFileExcel />} onClick={() => exportStudents('excel')}>
-              Export as Excel
-            </MenuItem>
-            <MenuItem icon={<FaFileCsv />} onClick={() => exportStudents('csv')}>
-              Export as CSV
-            </MenuItem>
-          </MenuList>
-        </Menu>
-      </Flex>
-
-      {selectedStudents.length > 0 && (
-        <Flex mb={4} alignItems="center">
-          <Text mr={4}>{selectedStudents.length} students selected</Text>
-          <Menu>
-            <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm">
-              Bulk Actions
-            </MenuButton>
-            <MenuList>
-              <MenuItem>Promote Students</MenuItem>
-              <MenuItem>Change Class/Section</MenuItem>
-              <MenuItem>Update Status</MenuItem>
-              <MenuItem>Send Notification</MenuItem>
-            </MenuList>
-          </Menu>
-        </Flex>
-      )}
-
+        
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="grade-filter-label">Grade</InputLabel>
+          <Select
+            labelId="grade-filter-label"
+            value={gradeFilter}
+            label="Grade"
+            onChange={handleGradeFilterChange}
+            startAdornment={
+              <InputAdornment position="start">
+                <FilterListIcon fontSize="small" />
+              </InputAdornment>
+            }
+          >
+            <MenuItem value="">All Grades</MenuItem>
+            {[...Array(12)].map((_, i) => (
+              <MenuItem key={i + 1} value={(i + 1).toString()}>
+                Grade {i + 1}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="status-filter-label">Status</InputLabel>
+          <Select
+            labelId="status-filter-label"
+            value={statusFilter}
+            label="Status"
+            onChange={handleStatusFilterChange}
+            startAdornment={
+              <InputAdornment position="start">
+                <FilterListIcon fontSize="small" />
+              </InputAdornment>
+            }
+          >
+            <MenuItem value="">All Statuses</MenuItem>
+            <MenuItem value="Active">Active</MenuItem>
+            <MenuItem value="Inactive">Inactive</MenuItem>
+            <MenuItem value="Graduated">Graduated</MenuItem>
+            <MenuItem value="Transferred">Transferred</MenuItem>
+            <MenuItem value="Withdrawn">Withdrawn</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+      
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      
       {loading ? (
-        <Flex justifyContent="center" alignItems="center" height="200px">
-          <Spinner size="xl" />
-        </Flex>
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <CircularProgress />
+        </Box>
       ) : (
         <>
-          <Box overflowX="auto">
-            <Table variant="simple">
-              <Thead>
-                <Tr>
-                  <Th width="40px">
-                    <Checkbox
-                      isChecked={selectedStudents.length === students.length && students.length > 0}
-                      onChange={handleSelectAll}
-                    />
-                  </Th>
-                  <Th>Admission No.</Th>
-                  <Th>Name</Th>
-                  <Th>Class</Th>
-                  <Th>Gender</Th>
-                  <Th>Status</Th>
-                  <Th>Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {students.length > 0 ? (
-                  students.map(student => (
-                    <Tr key={student.id}>
-                      <Td>
-                        <Checkbox
-                          isChecked={selectedStudents.includes(student.id)}
-                          onChange={() => handleSelectStudent(student.id)}
-                        />
-                      </Td>
-                      <Td>{student.admissionNumber}</Td>
-                      <Td>
-                        <NextLink href={`/students/${student.id}`} passHref>
-                          <Link color="blue.500">
+          <TableContainer>
+            <Table sx={{ minWidth: 650 }} aria-label="students table">
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>Student</strong></TableCell>
+                  <TableCell><strong>ID</strong></TableCell>
+                  <TableCell><strong>Grade</strong></TableCell>
+                  <TableCell><strong>Contact</strong></TableCell>
+                  <TableCell><strong>Guardian</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                  <TableCell align="center"><strong>Actions</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedStudents.map((student) => (
+                  <TableRow key={student.id} hover>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Avatar 
+                          sx={{ 
+                            width: 40, 
+                            height: 40, 
+                            mr: 2,
+                            bgcolor: student.profileColor || 'primary.main'
+                          }}
+                        >
+                          {student.firstName[0]}{student.lastName[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body1">
                             {student.firstName} {student.lastName}
-                          </Link>
-                        </NextLink>
-                      </Td>
-                      <Td>{student.currentClass?.name || 'N/A'}</Td>
-                      <Td>{student.gender}</Td>
-                      <Td>{getStatusBadge(student.status)}</Td>
-                      <Td>
-                        <HStack spacing={2}>
-                          <Tooltip label="View Student">
-                            <IconButton
-                              aria-label="View student"
-                              icon={<ViewIcon />}
-                              size="sm"
-                              onClick={() => router.push(`/students/${student.id}`)}
-                            />
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {student.email}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{student.studentId || student.id}</TableCell>
+                    <TableCell>
+                      {student.gradeLevel ? `Grade ${student.gradeLevel}` : 'Not assigned'}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {student.phone || 'No phone'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {student.address ? `${student.city || ''}, ${student.state || ''}` : 'No address'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      {student.guardianFirstName ? (
+                        <>
+                          <Typography variant="body2">
+                            {student.guardianFirstName} {student.guardianLastName}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {student.guardianPhone || student.guardianEmail || 'No contact info'}
+                          </Typography>
+                        </>
+                      ) : (
+                        'Not provided'
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={student.status || 'Active'} 
+                        color={student.status === 'Active' ? 'success' : 'default'} 
+                        size="small" 
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="View">
+                        <IconButton onClick={() => handleViewStudent(student.id)}>
+                          <VisibilityIcon />
+                        </IconButton>
+                      </Tooltip>
+                      {isAdmin && (
+                        <>
+                          <Tooltip title="Edit">
+                            <IconButton onClick={() => handleEditStudent(student.id)}>
+                              <EditIcon />
+                            </IconButton>
                           </Tooltip>
-                          <Tooltip label="Edit Student">
-                            <IconButton
-                              aria-label="Edit student"
-                              icon={<EditIcon />}
-                              size="sm"
-                              onClick={() => router.push(`/students/${student.id}/edit`)}
-                            />
+                          <Tooltip title="Delete">
+                            <IconButton onClick={() => handleDeleteStudent(student.id)} color="error">
+                              <DeleteIcon />
+                            </IconButton>
                           </Tooltip>
-                          <Tooltip label="Delete Student">
-                            <IconButton
-                              aria-label="Delete student"
-                              icon={<DeleteIcon />}
-                              size="sm"
-                              colorScheme="red"
-                              onClick={() => confirmDelete(student)}
-                            />
-                          </Tooltip>
-                        </HStack>
-                      </Td>
-                    </Tr>
-                  ))
-                ) : (
-                  <Tr>
-                    <Td colSpan={7} textAlign="center" py={4}>
-                      No students found
-                    </Td>
-                  </Tr>
-                )}
-              </Tbody>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
             </Table>
-          </Box>
-
-          <Flex justifyContent="space-between" alignItems="center" mt={4}>
-            <Text>
-              Showing {students.length} of {totalStudents} students
-            </Text>
-            <HStack>
-              <Button
-                size="sm"
-                onClick={() => setPage(page - 1)}
-                isDisabled={page === 1}
-              >
-                Previous
-              </Button>
-              <Text>
-                Page {page} of {totalPages}
-              </Text>
-              <Button
-                size="sm"
-                onClick={() => setPage(page + 1)}
-                isDisabled={page === totalPages}
-              >
-                Next
-              </Button>
-              <Select
-                size="sm"
-                width="80px"
-                value={limit}
-                onChange={(e) => {
-                  setLimit(Number(e.target.value));
-                  setPage(1); // Reset to first page when changing limit
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </Select>
-            </HStack>
-          </Flex>
+          </TableContainer>
+          
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredStudents.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </>
       )}
-
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Confirm Delete</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            Are you sure you want to delete {selectedStudent?.firstName} {selectedStudent?.lastName}? This action cannot be undone.
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="red" onClick={handleDelete}>
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </Box>
   );
 };
