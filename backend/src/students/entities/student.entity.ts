@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToOne, OneToMany, ManyToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '../../common/base.entity';
 import { User } from '../../users/entities/user.entity';
@@ -18,6 +18,17 @@ export enum BloodGroup {
   AB_NEGATIVE = 'AB-',
   O_POSITIVE = 'O+',
   O_NEGATIVE = 'O-',
+}
+
+export enum StudentStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  GRADUATED = 'graduated',
+  TRANSFERRED = 'transferred',
+  SUSPENDED = 'suspended',
+  EXPELLED = 'expelled',
+  ALUMNI = 'alumni',
+  PENDING = 'pending',
 }
 
 @Entity('students')
@@ -122,9 +133,33 @@ export class Student extends BaseEntity {
   @Column({ type: 'date', nullable: true })
   graduationDate?: Date;
 
-  @ApiProperty({ description: 'Student status' })
-  @Column({ default: 'active' })
-  status: string;
+  @ApiProperty({ description: 'Student status', enum: StudentStatus })
+  @Column({ 
+    type: 'enum', 
+    enum: StudentStatus, 
+    default: StudentStatus.ACTIVE 
+  })
+  status: StudentStatus;
+
+  @ApiProperty({ description: 'Previous school name' })
+  @Column({ nullable: true })
+  previousSchool?: string;
+
+  @ApiProperty({ description: 'Previous school address' })
+  @Column({ type: 'text', nullable: true })
+  previousSchoolAddress?: string;
+
+  @ApiProperty({ description: 'Transfer certificate number' })
+  @Column({ nullable: true })
+  transferCertificateNumber?: string;
+
+  @ApiProperty({ description: 'Birth certificate number' })
+  @Column({ nullable: true })
+  birthCertificateNumber?: string;
+
+  @ApiProperty({ description: 'Student ID card number' })
+  @Column({ nullable: true })
+  idCardNumber?: string;
 
   @ApiProperty({ description: 'Student user account' })
   @OneToOne(() => User, { nullable: true })
@@ -134,6 +169,62 @@ export class Student extends BaseEntity {
   @Column({ type: 'uuid', nullable: true })
   userId?: string;
 
-  // Relationships will be added here
+  @ApiProperty({ description: 'Current class ID' })
+  @Column({ type: 'uuid', nullable: true })
+  currentClassId?: string;
+
+  @ApiProperty({ description: 'Current section ID' })
+  @Column({ type: 'uuid', nullable: true })
+  currentSectionId?: string;
+
+  @ApiProperty({ description: 'Current academic year ID' })
+  @Column({ type: 'uuid', nullable: true })
+  academicYearId?: string;
+
+  @ApiProperty({ description: 'Roll number in current class' })
+  @Column({ nullable: true })
+  rollNumber?: string;
+
+  @ApiProperty({ description: 'House/Team assignment' })
+  @Column({ nullable: true })
+  house?: string;
+
+  @ApiProperty({ description: 'Student registration number' })
+  @Column({ nullable: true })
+  registrationNumber?: string;
+
+  @ApiProperty({ description: 'Student documents' })
+  @Column('simple-array', { nullable: true })
+  documents?: string[];
+
+  @ApiProperty({ description: 'Special needs or accommodations' })
+  @Column({ type: 'text', nullable: true })
+  specialNeeds?: string;
+
+  @ApiProperty({ description: 'Scholarship information' })
+  @Column({ type: 'text', nullable: true })
+  scholarshipInfo?: string;
+
+  @ApiProperty({ description: 'Fee category' })
+  @Column({ nullable: true })
+  feeCategory?: string;
+
+  @ApiProperty({ description: 'Bus route number' })
+  @Column({ nullable: true })
+  busRouteNumber?: string;
+
+  @ApiProperty({ description: 'Bus stop' })
+  @Column({ nullable: true })
+  busStop?: string;
+
+  @ApiProperty({ description: 'Hostel room number' })
+  @Column({ nullable: true })
+  hostelRoomNumber?: string;
+
+  @ApiProperty({ description: 'Locker number' })
+  @Column({ nullable: true })
+  lockerNumber?: string;
+
+  // Relationships will be added here as needed
 }
 
