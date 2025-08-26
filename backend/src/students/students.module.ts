@@ -30,6 +30,7 @@ import {
 
 // Import UsersModule to use UsersService
 import { UsersModule } from '../users/users.module';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { UsersModule } from '../users/users.module';
     ]),
     ConfigModule,
     UsersModule, // Import UsersModule to use UsersService
+    CommonModule, // Import CommonModule to use FileUploadService
   ],
   controllers: [
     StudentsController, 

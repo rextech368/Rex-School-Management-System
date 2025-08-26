@@ -6,6 +6,8 @@ import { Student } from '../entities/student.entity';
 import { CreateStudentDocumentDto } from '../dto/document/create-student-document.dto';
 import { UpdateStudentDocumentDto } from '../dto/document/update-student-document.dto';
 import { StudentDocumentFilterDto } from '../dto/document/student-document-filter.dto';
+import { UploadDocumentDto } from '../dto/document/upload-document.dto';
+import { FileUploadService, UploadedFileInfo } from '../../common/services/file-upload.service';
 
 @Injectable()
 export class StudentDocumentsService {
@@ -14,6 +16,7 @@ export class StudentDocumentsService {
     private documentsRepository: Repository<StudentDocument>,
     @InjectRepository(Student)
     private studentsRepository: Repository<Student>,
+    private fileUploadService: FileUploadService,
   ) {}
 
   async create(createDocumentDto: CreateStudentDocumentDto, userId?: string): Promise<StudentDocument> {
@@ -34,6 +37,86 @@ export class StudentDocumentsService {
     });
 
     return this.documentsRepository.save(document);
+  }
+
+  /**
+   * Upload a document file and create a document record
+   * @param file The file to upload
+   * @param uploadDocumentDto Document metadata
+   * @param userId User ID of the uploader
+   * @returns The created document
+   */
+  async uploadDocument(
+    file: Express.Multer.File,
+    uploadDocumentDto: UploadDocumentDto,
+    userId?: string,
+  ): Promise<StudentDocument> {
+    // Check if student exists
+    const student = await this.studentsRepository.findOneBy({ id: uploadDocumentDto.studentId });
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${uploadDocumentDto.studentId} not found`);
+    }
+
+    // Determine the subdirectory for the file
+    const subDirectory = `students/${uploadDocumentDto.studentId}/documents`;
+
+    // Upload the file
+    const uploadedFile = await this.fileUploadService.uploadFile(file, {
+      subDirectory,
+      allowedMimeTypes: [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ],
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+    });
+
+    // Create document record
+    const document = this.documentsRepository.create({
+      title: uploadDocumentDto.title,
+      type: uploadDocumentDto.type,
+      description: uploadDocumentDto.description,
+      fileUrl: uploadedFile.url,
+      fileName: uploadedFile.fileName,
+      fileSize: uploadedFile.size,
+      fileMimeType: uploadedFile.mimeType,
+      studentId: uploadDocumentDto.studentId,
+      issueDate: uploadDocumentDto.issueDate ? new Date(uploadDocumentDto.issueDate) : undefined,
+      expiryDate: uploadDocumentDto.expiryDate ? new Date(uploadDocumentDto.expiryDate) : undefined,
+      referenceNumber: uploadDocumentDto.referenceNumber,
+      issuingAuthority: uploadDocumentDto.issuingAuthority,
+      createdBy: userId,
+    });
+
+    return this.documentsRepository.save(document);
+  }
+
+  /**
+   * Upload multiple document files and create document records
+   * @param files The files to upload
+   * @param uploadDocumentDtos Document metadata for each file
+   * @param userId User ID of the uploader
+   * @returns The created documents
+   */
+  async uploadMultipleDocuments(
+    files: Express.Multer.File[],
+    uploadDocumentDtos: UploadDocumentDto[],
+    userId?: string,
+  ): Promise<StudentDocument[]> {
+    if (files.length !== uploadDocumentDtos.length) {
+      throw new BadRequestException('Number of files and document metadata must match');
+    }
+
+    const uploadPromises = files.map((file, index) => 
+      this.uploadDocument(file, uploadDocumentDtos[index], userId)
+    );
+
+    return Promise.all(uploadPromises);
   }
 
   async findAll(filterDto: StudentDocumentFilterDto): Promise<[StudentDocument[], number]> {
@@ -129,6 +212,21 @@ export class StudentDocumentsService {
   async remove(id: string, userId?: string): Promise<void> {
     const document = await this.findOne(id);
 
+    // Delete the file if it exists
+    try {
+      const filePath = this.fileUploadService.getFilePath(
+        document.fileName,
+        `students/${document.studentId}/documents`
+      );
+      
+      if (await this.fileUploadService.fileExists(filePath)) {
+        await this.fileUploadService.deleteFile(filePath);
+      }
+    } catch (error) {
+      // Log error but continue with document deletion
+      console.error(`Failed to delete file for document ${id}:`, error);
+    }
+
     // Soft delete
     document.deletedBy = userId;
     await this.documentsRepository.save(document);
@@ -161,6 +259,26 @@ export class StudentDocumentsService {
   }
 
   async bulkDelete(ids: string[], userId?: string): Promise<void> {
+    // Get all documents to delete their files
+    const documents = await this.documentsRepository.findBy({ id: In(ids) });
+
+    // Delete files
+    for (const document of documents) {
+      try {
+        const filePath = this.fileUploadService.getFilePath(
+          document.fileName,
+          `students/${document.studentId}/documents`
+        );
+        
+        if (await this.fileUploadService.fileExists(filePath)) {
+          await this.fileUploadService.deleteFile(filePath);
+        }
+      } catch (error) {
+        // Log error but continue with document deletion
+        console.error(`Failed to delete file for document ${document.id}:`, error);
+      }
+    }
+
     // Update deletedBy for all documents
     await this.documentsRepository.update(
       { id: In(ids) },
@@ -175,6 +293,61 @@ export class StudentDocumentsService {
     return this.documentsRepository.count({
       where: filters,
     });
+  }
+
+  /**
+   * Replace a document file
+   * @param id Document ID
+   * @param file New file
+   * @param userId User ID
+   * @returns Updated document
+   */
+  async replaceDocumentFile(
+    id: string,
+    file: Express.Multer.File,
+    userId?: string,
+  ): Promise<StudentDocument> {
+    const document = await this.findOne(id);
+
+    // Delete the old file if it exists
+    try {
+      const filePath = this.fileUploadService.getFilePath(
+        document.fileName,
+        `students/${document.studentId}/documents`
+      );
+      
+      if (await this.fileUploadService.fileExists(filePath)) {
+        await this.fileUploadService.deleteFile(filePath);
+      }
+    } catch (error) {
+      // Log error but continue with file replacement
+      console.error(`Failed to delete old file for document ${id}:`, error);
+    }
+
+    // Upload the new file
+    const uploadedFile = await this.fileUploadService.uploadFile(file, {
+      subDirectory: `students/${document.studentId}/documents`,
+      allowedMimeTypes: [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ],
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+    });
+
+    // Update document
+    document.fileUrl = uploadedFile.url;
+    document.fileName = uploadedFile.fileName;
+    document.fileSize = uploadedFile.size;
+    document.fileMimeType = uploadedFile.mimeType;
+    document.updatedBy = userId;
+
+    return this.documentsRepository.save(document);
   }
 }
 

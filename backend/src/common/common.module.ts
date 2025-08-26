@@ -1,13 +1,11 @@
-import { Module, Global } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { HelperService } from './helper.service';
-import { LoggerService } from './logger.service';
+import { FileUploadService } from './services/file-upload.service';
 
-@Global()
 @Module({
   imports: [ConfigModule],
-  providers: [HelperService, LoggerService],
-  exports: [HelperService, LoggerService],
+  providers: [FileUploadService],
+  exports: [FileUploadService],
 })
 export class CommonModule {}
 
