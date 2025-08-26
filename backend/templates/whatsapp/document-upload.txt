@@ -1,0 +1,15 @@
+*New Document Uploaded* 📄
+
+Hello {{name}},
+
+A new document has been uploaded to your account:
+
+*Document:* {{documentTitle}}
+
+You can view this document by logging into your account.
+
+If you have any questions, please reply to this message or contact our support team.
+
+Thank you,
+Rex School Management System
+

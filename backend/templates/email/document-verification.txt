@@ -1,0 +1,30 @@
+Document Verification Update
+
+Dear {{name}},
+
+We have an update regarding your document verification in the Rex School Management System.
+
+Document Title: {{documentTitle}}
+Verification Status: {{#if verificationStatus}}Verified✅{{else}}Not Verified❌{{/if}}
+Verification Date: {{formatDate now}}
+
+{{#if verificationNotes}}
+Verification Notes:
+{{verificationNotes}}
+{{/if}}
+
+You can view your document details by visiting:
+{{documentsUrl}}
+
+{{#unless verificationStatus}}
+If your document was not verified, you may need to upload a new version or provide additional information. Please review the verification notes for specific instructions.
+{{/unless}}
+
+If you have any questions or need assistance, please don't hesitate to contact our support team.
+
+Best regards,
+The Rex School Management Team
+
+© 2025 Rex School Management System. All rights reserved.
+This email was sent to you because you are registered to receive document verification notifications.
+
