@@ -1,0 +1,27 @@
+New Grade Posted
+
+Dear {{guardianName}},
+
+A new grade has been posted for {{studentName}}.
+
+Grade Details:
+Assignment: {{gradeItemTitle}}
+Type: {{gradeItemType}}
+Score: {{score}} / {{maxScore}} ({{percentageScore}}%)
+{{#if letterGrade}}Letter Grade: {{letterGrade}}{{/if}}
+
+{{#if feedback}}
+Teacher Feedback:
+{{feedback}}
+{{/if}}
+
+You can view more details about this grade and your child's overall academic progress by logging into the student portal at {{portalUrl}}.
+
+If you have any questions about this grade, please contact your child's teacher.
+
+Best regards,
+The {{schoolName}} Team
+
+© 2025 {{schoolName}}. All rights reserved.
+This email was sent to you because you are registered as a guardian for {{studentName}}.
+

@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { StudentsModule } from './students/students.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import { GradesModule } from './grades/grades.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AttendanceModule } from './attendance/attendance.module';
     StudentsModule,
     NotificationsModule,
     AttendanceModule,
+    GradesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
