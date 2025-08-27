@@ -188,6 +188,28 @@ export interface Grade {
   comments?: string;
   dateSubmitted?: string;
   dateGraded?: string;
+  status?: 'submitted' | 'missing' | 'excused' | 'incomplete';
+  recordedBy?: string;
+  recordedAt?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+export interface GradeRecord {
+  studentId: string;
+  score: number | null;
+  comments?: string;
+  status?: 'submitted' | 'missing' | 'excused' | 'incomplete';
+}
+
+export interface GradeSummary {
+  totalAssignments: number;
+  completedAssignments: number;
+  averageScore: number;
+  highestScore: number;
+  lowestScore: number;
+  letterGrade: string;
+  gpa?: number;
 }
 
 export interface Assignment {
@@ -200,6 +222,10 @@ export interface Assignment {
   maxScore: number;
   weight: number;
   status: 'draft' | 'published' | 'graded';
+  createdBy?: string;
+  createdAt?: string;
+  updatedBy?: string;
+  updatedAt?: string;
 }
 
 export interface GradeScale {
@@ -222,6 +248,7 @@ export interface ReportCard {
     className: string;
     teacherName: string;
     grade: string;
+    percentage: number;
     comments?: string;
   }[];
   gpa: number;
