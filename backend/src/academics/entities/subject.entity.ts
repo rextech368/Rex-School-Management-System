@@ -1,28 +1,37 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, ManyToMany, JoinTable } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntity } from '../../common/base.entity';
+import { Level } from './level.entity';
 
-@Entity({ name: 'subjects' })
-export class Subject {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
-
-  @Column({ unique: true })
-  code: string;
-
+@Entity('subjects')
+export class Subject extends BaseEntity {
+  @ApiProperty({ description: 'Subject name' })
   @Column()
   name: string;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, default: 1.0 })
-  coefficient: number;
+  @ApiProperty({ description: 'Subject code' })
+  @Column({ unique: true })
+  code: string;
 
-  @Column({ default: 1 })
-  hours_per_week: number;
+  @ApiProperty({ description: 'Subject description' })
+  @Column({ type: 'text', nullable: true })
+  description?: string;
 
-  @Column({ nullable: true })
-  description: string;
+  @ApiProperty({ description: 'Subject type' })
+  @Column({ default: 'core' })
+  type: string;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @ApiProperty({ description: 'Subject status' })
+  @Column({ default: 'active' })
+  status: string;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @ApiProperty({ description: 'Levels this subject is taught in' })
+  @ManyToMany(() => Level)
+  @JoinTable({
+    name: 'subject_levels',
+    joinColumn: { name: 'subjectId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'levelId', referencedColumnName: 'id' },
+  })
+  levels: Level[];
 }
+

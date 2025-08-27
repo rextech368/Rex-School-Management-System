@@ -1,0 +1,23 @@
+Welcome to {{schoolName}}!
+
+Dear {{studentName}},
+
+Welcome to {{schoolName}}! We are excited to have you join our community and look forward to supporting your educational journey.
+
+Your Student Information:
+Student ID: {{studentId}}
+Grade Level: {{gradeLevel}}
+
+Your student account has been created, and you can now access the student portal to view your schedule, assignments, grades, and more.
+
+Access Student Portal: {{portalUrl}}
+
+If you have any questions or need assistance, please don't hesitate to contact the school administration office.
+
+We wish you a successful academic year!
+
+Best regards,
+The {{schoolName}} Team
+
+© 2025 {{schoolName}}. All rights reserved.
+

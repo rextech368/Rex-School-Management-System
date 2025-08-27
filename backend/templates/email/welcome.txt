@@ -1,0 +1,33 @@
+Welcome to Rex School Management System
+
+Dear {{name}},
+
+Welcome to Rex School Management System! We're excited to have you on board.
+
+Your account has been successfully created and is now ready to use.
+
+{{#if password}}
+Your login credentials:
+Username: {{email}}
+Password: {{password}}
+
+Please change your password after your first login for security reasons.
+{{/if}}
+
+With Rex School Management System, you can:
+- Access student information and academic records
+- View and manage documents
+- Communicate with teachers and staff
+- Stay updated on school events and announcements
+- And much more!
+
+To get started, visit the login page at: {{loginUrl}}
+
+If you have any questions or need assistance, please don't hesitate to contact our support team.
+
+Best regards,
+The Rex School Management Team
+
+© 2025 Rex School Management System. All rights reserved.
+This email was sent to you because you registered for an account on our platform.
+

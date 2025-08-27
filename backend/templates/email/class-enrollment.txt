@@ -1,0 +1,29 @@
+Class Enrollment: {{courseName}}
+
+Dear {{studentName}},
+
+You have been successfully enrolled in the following class:
+
+Class Information:
+Class: {{className}}
+Course: {{courseName}} ({{courseCode}})
+Term: {{termName}}
+
+Schedule:
+{{#each schedules}}
+- {{this.dayOfWeek}}: {{this.startTime}} - {{this.endTime}}
+  Location: {{#if this.room}}{{this.room}}{{#if this.building}}, {{this.building}}{{/if}}{{else}}{{#if this.class.room}}{{this.class.room}}{{#if this.class.building}}, {{this.class.building}}{{/if}}{{else}}TBA{{/if}}{{/if}}
+{{/each}}
+
+You can view your complete class schedule, assignments, and course materials on the student portal:
+{{portalUrl}}
+
+If you have any questions or need assistance, please don't hesitate to contact your academic advisor or the school administration office.
+
+We wish you a successful academic term!
+
+Best regards,
+The {{schoolName}} Team
+
+© 2025 {{schoolName}}. All rights reserved.
+

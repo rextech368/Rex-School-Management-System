@@ -1,0 +1,23 @@
+Student Absence Notification
+
+Dear {{guardianName}},
+
+This is to inform you that {{studentName}} was marked absent from school today, {{date}}.
+
+If this absence was planned or due to illness, please provide the school with appropriate documentation or explanation. If you were not aware of this absence, please contact the school immediately.
+
+Regular attendance is crucial for academic success. If there are any issues affecting your child's attendance, please let us know so we can provide appropriate support.
+
+Contact Information:
+School: {{schoolName}}
+Email: {{contactEmail}}
+Phone: {{contactPhone}}
+
+Thank you for your attention to this matter.
+
+Best regards,
+The {{schoolName}} Team
+
+© 2025 {{schoolName}}. All rights reserved.
+This email was sent to you because you are registered as a guardian for {{studentName}}.
+

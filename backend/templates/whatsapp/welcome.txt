@@ -1,0 +1,16 @@
+*Welcome to Rex School Management System!* 🎓
+
+Hello {{name}},
+
+Your account has been successfully created. You can now access all features of our school management platform.
+
+*Get started by logging in here:*
+{{loginUrl}}
+
+If you have any questions or need assistance, please reply to this message or contact our support team.
+
+Thank you for joining Rex School Management System!
+
+Best regards,
+The Rex School Team
+

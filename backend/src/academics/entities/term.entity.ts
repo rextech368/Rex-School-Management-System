@@ -1,29 +1,41 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntity } from '../../common/base.entity';
 import { AcademicYear } from './academic-year.entity';
 
-@Entity({ name: 'terms' })
-export class Term {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
-
-  @ManyToOne(() => AcademicYear, (year) => year.terms)
-  academic_year: AcademicYear;
-
+@Entity('terms')
+export class Term extends BaseEntity {
+  @ApiProperty({ description: 'Term name' })
   @Column()
   name: string;
 
+  @ApiProperty({ description: 'Term start date' })
   @Column({ type: 'date' })
-  start_date: string;
+  startDate: Date;
 
+  @ApiProperty({ description: 'Term end date' })
   @Column({ type: 'date' })
-  end_date: string;
+  endDate: Date;
 
-  @Column({ default: 2 })
-  sequence_count: number;
+  @ApiProperty({ description: 'Term description' })
+  @Column({ type: 'text', nullable: true })
+  description?: string;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @ApiProperty({ description: 'Is current term' })
+  @Column({ default: false })
+  isCurrent: boolean;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @ApiProperty({ description: 'Term status' })
+  @Column({ default: 'active' })
+  status: string;
+
+  @ApiProperty({ description: 'Academic year ID' })
+  @Column({ type: 'uuid' })
+  academicYearId: string;
+
+  @ApiProperty({ description: 'Academic year' })
+  @ManyToOne(() => AcademicYear, academicYear => academicYear.terms)
+  @JoinColumn({ name: 'academicYearId' })
+  academicYear: AcademicYear;
 }
+

@@ -1,0 +1,21 @@
+New Document Uploaded
+
+Dear {{name}},
+
+A new document has been uploaded to the Rex School Management System.
+
+Document Title: {{documentTitle}}
+Student: {{studentName}}
+Upload Date: {{formatDate now}}
+
+You can view this document by visiting:
+{{documentsUrl}}
+
+If you have any questions or need assistance, please don't hesitate to contact our support team.
+
+Best regards,
+The Rex School Management Team
+
+© 2025 Rex School Management System. All rights reserved.
+This email was sent to you because you are registered to receive document notifications.
+
