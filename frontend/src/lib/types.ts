@@ -260,3 +260,135 @@ export interface ReportCard {
   comments?: string;
 }
 
+// Communication System Types
+
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: Role;
+  senderAvatar?: string;
+  recipientId: string;
+  recipientName: string;
+  recipientRole: Role;
+  recipientAvatar?: string;
+  subject: string;
+  content: string;
+  attachments?: Attachment[];
+  isRead: boolean;
+  isStarred?: boolean;
+  isArchived?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Conversation {
+  id: string;
+  participants: {
+    id: string;
+    name: string;
+    role: Role;
+    avatar?: string;
+  }[];
+  lastMessage: {
+    content: string;
+    senderId: string;
+    createdAt: string;
+    isRead: boolean;
+  };
+  unreadCount: number;
+  updatedAt: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorRole: Role;
+  authorAvatar?: string;
+  targetAudience: AnnouncementAudience;
+  targetIds?: string[]; // Class IDs, grade levels, etc.
+  attachments?: Attachment[];
+  isPinned: boolean;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export enum AnnouncementAudience {
+  ALL = 'all',
+  STAFF = 'staff',
+  TEACHERS = 'teachers',
+  STUDENTS = 'students',
+  PARENTS = 'parents',
+  CLASSES = 'classes',
+  GRADE_LEVELS = 'grade_levels'
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  relatedId?: string; // ID of related entity (grade, attendance, etc.)
+  isRead: boolean;
+  createdAt: string;
+}
+
+export enum NotificationType {
+  ANNOUNCEMENT = 'announcement',
+  MESSAGE = 'message',
+  GRADE = 'grade',
+  ATTENDANCE = 'attendance',
+  ASSIGNMENT = 'assignment',
+  SYSTEM = 'system',
+  EVENT = 'event'
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
+export interface Conference {
+  id: string;
+  title: string;
+  description?: string;
+  teacherId: string;
+  teacherName: string;
+  parentId: string;
+  parentName: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface NotificationPreference {
+  userId: string;
+  email: boolean;
+  sms: boolean;
+  inApp: boolean;
+  types: {
+    [key in NotificationType]: {
+      email: boolean;
+      sms: boolean;
+      inApp: boolean;
+    }
+  };
+}
+
