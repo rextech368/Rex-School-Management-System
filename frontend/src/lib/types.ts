@@ -152,6 +152,28 @@ export interface Attendance {
   date: string;
   status: 'present' | 'absent' | 'tardy' | 'excused';
   notes?: string;
+  recordedBy?: string;
+  recordedAt?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+export interface AttendanceRecord {
+  studentId: string;
+  status: 'present' | 'absent' | 'tardy' | 'excused';
+  notes?: string;
+}
+
+export interface AttendanceSummary {
+  totalDays: number;
+  presentDays: number;
+  absentDays: number;
+  tardyDays: number;
+  excusedDays: number;
+  presentPercentage: number;
+  absentPercentage: number;
+  tardyPercentage: number;
+  excusedPercentage: number;
 }
 
 export interface Grade {
