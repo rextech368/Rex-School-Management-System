@@ -1,20 +1,29 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { isAuthenticated, getUserRole, getUserId, logout } from '../utils/auth';
-import apiClient from '../api/api-client';
+'use client';
 
-interface User {
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import apiClient from '@/lib/api/api-client';
+import { storeTokens, clearTokens, getStoredTokens } from '@/lib/api/token-refresh';
+import { UserRole } from '@/lib/utils/auth';
+
+export interface User {
   id: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  name: string;
-  role: string;
+  role: UserRole;
   organizationId?: string;
+  profileImageUrl?: string;
+  lastLogin?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -24,89 +33,114 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUserAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const router = useRouter();
 
-  // Load user data on initial render
+  // Check for existing auth on mount
   useEffect(() => {
-    const loadUserData = async () => {
-      if (isAuthenticated()) {
-        setIsAuthenticated(true);
-        await refreshUser();
-      } else {
+    const initAuth = async () => {
+      setIsLoading(true);
+      try {
+        const { accessToken } = getStoredTokens();
+        
+        if (accessToken) {
+          await refreshUser();
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        clearTokens();
+      } finally {
         setIsLoading(false);
-        setIsAuthenticated(false);
       }
     };
 
-    loadUserData();
+    initAuth();
   }, []);
 
-  const refreshUser = async () => {
-    setIsLoading(true);
+  const refreshUser = async (): Promise<void> => {
     try {
-      const userId = getUserId();
-      if (!userId) {
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await apiClient.get<User>(`/users/${userId}`);
-      if (response.success) {
-        setUser(response.data);
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-        logout();
-      }
+      const response = await apiClient.get<User>('/auth/me');
+      setUser(response.data);
     } catch (error) {
+      console.error('Error fetching user data:', error);
       setUser(null);
-      setIsAuthenticated(false);
-      logout();
+      clearTokens();
+    }
+  };
+
+  const login = async (email: string, password: string, rememberMe = false): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      const response = await apiClient.post<{ accessToken: string; refreshToken: string; user: User }>('/auth/login', {
+        email,
+        password,
+        rememberMe,
+      });
+      
+      const { accessToken, refreshToken, user: userData } = response.data;
+      
+      // Store tokens
+      storeTokens(accessToken, refreshToken);
+      
+      // Set user data
+      setUser(userData);
+      
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
-    try {
-      const response = await apiClient.post<{ token: string }>('/auth/login', { email, password });
-      
-      if (response.success && response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        setIsAuthenticated(true);
-        await refreshUser();
-        return true;
-      }
-      
-      setIsLoading(false);
-      return false;
-    } catch (error) {
-      setIsLoading(false);
-      return false;
-    }
+  const logout = (): void => {
+    // Clear user data
+    setUser(null);
+    
+    // Clear tokens
+    clearTokens();
+    
+    // Redirect to login page
+    router.push('/auth/login');
   };
 
-  const contextValue: AuthContextType = {
+  const value = {
     user,
     isLoading,
-    isAuthenticated: isUserAuthenticated,
+    isAuthenticated: !!user,
     login,
     logout,
     refreshUser,
   };
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
+};
+
+export const ProtectedRoute: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return isAuthenticated ? <>{children}</> : null;
 };
 

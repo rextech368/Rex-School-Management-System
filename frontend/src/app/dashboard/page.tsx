@@ -1,99 +1,99 @@
-import React from 'react';
-import Link from 'next/link';
+'use client';
 
-export default function Dashboard() {
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/context/auth-context';
+import DashboardStats from '@/components/dashboard/dashboard-stats';
+import RecentActivities from '@/components/dashboard/recent-activities';
+import UpcomingEvents from '@/components/dashboard/upcoming-events';
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const [greeting, setGreeting] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Set greeting based on time of day
+    const hour = new Date().getHours();
+    let newGreeting = '';
+    
+    if (hour < 12) {
+      newGreeting = 'Good Morning';
+    } else if (hour < 18) {
+      newGreeting = 'Good Afternoon';
+    } else {
+      newGreeting = 'Good Evening';
+    }
+    
+    setGreeting(newGreeting);
+    
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Students Card */}
-        <Link href="/students" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Students</h2>
-              <p className="text-gray-500">Manage student records</p>
-            </div>
-            <div className="text-blue-500 text-4xl">🧑‍🎓</div>
-          </div>
-        </Link>
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">
+            {greeting}, {user?.firstName || 'User'}!
+          </p>
+        </div>
         
-        {/* Classes Card */}
-        <Link href="/classes" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Classes</h2>
-              <p className="text-gray-500">Manage classes and courses</p>
-            </div>
-            <div className="text-green-500 text-4xl">📚</div>
-          </div>
-        </Link>
-        
-        {/* Finance Card */}
-        <Link href="/finance" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Finance</h2>
-              <p className="text-gray-500">Manage fees and payments</p>
-            </div>
-            <div className="text-yellow-500 text-4xl">💰</div>
-          </div>
-        </Link>
-        
-        {/* Attendance Card */}
-        <Link href="/attendance" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Attendance</h2>
-              <p className="text-gray-500">Track student attendance</p>
-            </div>
-            <div className="text-purple-500 text-4xl">📋</div>
-          </div>
-        </Link>
-        
-        {/* Reports Card */}
-        <Link href="/reports" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Reports</h2>
-              <p className="text-gray-500">Generate and view reports</p>
-            </div>
-            <div className="text-red-500 text-4xl">📊</div>
-          </div>
-        </Link>
-        
-        {/* Settings Card */}
-        <Link href="/settings" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Settings</h2>
-              <p className="text-gray-500">Configure system settings</p>
-            </div>
-            <div className="text-gray-500 text-4xl">⚙️</div>
-          </div>
-        </Link>
+        <div className="mt-4 md:mt-0 flex space-x-3">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+            Generate Report
+          </button>
+          <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
+            Export Data
+          </button>
+        </div>
       </div>
       
-      {/* Quick Actions Section */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+      <DashboardStats />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentActivities />
+        <UpcomingEvents />
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-semibold">Quick Actions</h2>
+        </div>
+        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/students/add" className="bg-blue-50 p-3 rounded-md text-center hover:bg-blue-100 transition-colors">
-            <div className="text-2xl mb-1">➕</div>
-            <div className="text-sm">Add Student</div>
-          </Link>
-          <Link href="/finance/invoices/create" className="bg-green-50 p-3 rounded-md text-center hover:bg-green-100 transition-colors">
-            <div className="text-2xl mb-1">📝</div>
-            <div className="text-sm">Create Invoice</div>
-          </Link>
-          <Link href="/attendance/record" className="bg-purple-50 p-3 rounded-md text-center hover:bg-purple-100 transition-colors">
-            <div className="text-2xl mb-1">✓</div>
-            <div className="text-sm">Record Attendance</div>
-          </Link>
-          <Link href="/reports/generate" className="bg-yellow-50 p-3 rounded-md text-center hover:bg-yellow-100 transition-colors">
-            <div className="text-2xl mb-1">📊</div>
-            <div className="text-sm">Generate Report</div>
-          </Link>
+          <button className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors flex flex-col items-center justify-center">
+            <span className="text-blue-600 text-2xl mb-2">👨‍🎓</span>
+            <span className="text-sm font-medium">Add Student</span>
+          </button>
+          
+          <button className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors flex flex-col items-center justify-center">
+            <span className="text-green-600 text-2xl mb-2">💵</span>
+            <span className="text-sm font-medium">Record Payment</span>
+          </button>
+          
+          <button className="p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors flex flex-col items-center justify-center">
+            <span className="text-purple-600 text-2xl mb-2">📊</span>
+            <span className="text-sm font-medium">Take Attendance</span>
+          </button>
+          
+          <button className="p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors flex flex-col items-center justify-center">
+            <span className="text-yellow-600 text-2xl mb-2">📝</span>
+            <span className="text-sm font-medium">Enter Grades</span>
+          </button>
         </div>
       </div>
     </div>
