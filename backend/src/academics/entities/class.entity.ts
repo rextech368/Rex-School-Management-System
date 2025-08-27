@@ -1,29 +1,42 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntity } from '../../common/base.entity';
 import { Level } from './level.entity';
+import { Section } from './section.entity';
 
-@Entity({ name: 'classes' })
-export class Class {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
-
-  @ManyToOne(() => Level)
-  level: Level;
-
+@Entity('classes')
+export class Class extends BaseEntity {
+  @ApiProperty({ description: 'Class name' })
   @Column()
   name: string;
 
-  @Column()
+  @ApiProperty({ description: 'Class code' })
+  @Column({ unique: true })
   code: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 50.0 })
-  default_promotion_threshold: number;
+  @ApiProperty({ description: 'Class description' })
+  @Column({ type: 'text', nullable: true })
+  description?: string;
 
-  @Column({ name: 'group_type', type: 'varchar', length: 20 })
-  group_type: 'Primary' | 'Secondary';
+  @ApiProperty({ description: 'Maximum number of students' })
+  @Column({ default: 50 })
+  maxStudents: number;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @ApiProperty({ description: 'Class status' })
+  @Column({ default: 'active' })
+  status: string;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @ApiProperty({ description: 'Level ID' })
+  @Column({ type: 'uuid' })
+  levelId: string;
+
+  @ApiProperty({ description: 'Level' })
+  @ManyToOne(() => Level, level => level.classes)
+  @JoinColumn({ name: 'levelId' })
+  level: Level;
+
+  @ApiProperty({ description: 'Sections in this class' })
+  @OneToMany(() => Section, section => section.class)
+  sections: Section[];
 }
+

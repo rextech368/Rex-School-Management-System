@@ -1,0 +1,30 @@
+Your Child Has Been Enrolled at {{schoolName}}
+
+Dear {{guardianName}},
+
+We are pleased to inform you that your child, {{studentName}}, has been successfully enrolled at {{schoolName}}.
+
+Student Information:
+Student Name: {{studentName}}
+Student ID: {{studentId}}
+Grade Level: {{gradeLevel}}
+
+As a guardian, you have access to our parent portal where you can:
+- View your child's academic progress
+- Monitor attendance
+- Communicate with teachers
+- Access school announcements and calendar
+- View and pay fees
+
+Access Parent Portal: {{portalUrl}}
+
+If you have any questions or need assistance, please don't hesitate to contact the school administration office.
+
+We look forward to partnering with you in your child's education!
+
+Best regards,
+The {{schoolName}} Team
+
+© 2025 {{schoolName}}. All rights reserved.
+This email was sent to you because you are registered as a guardian for {{studentName}}.
+

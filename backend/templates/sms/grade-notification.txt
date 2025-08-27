@@ -1,0 +1,2 @@
+{{schoolName}} Grade Alert: {{studentName}} has received a grade of {{score}}/{{maxScore}} ({{percentageScore}}%) for {{gradeItemTitle}}. View details in the student portal.
+

@@ -1,0 +1,2 @@
+Rex School: New document "{{documentTitle}}" has been uploaded to your account. Log in to view the document details.
+
